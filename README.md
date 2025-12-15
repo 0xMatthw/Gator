@@ -16,12 +16,12 @@ It answers questions like:
 ### 1. Prerequisites
 You need Python 3.8+. Install the dependencies:
 
-```bash
+```
 pip install requests pandas matplotlib numpy argparse
 
 ```
 
-###2. API Configuration (Security First!)**Do not commit API keys to GitHub.**
+### 2. API Configuration (Security First!)**Do not commit API keys to GitHub.**
 Set these environment variables in your terminal or a `.env` file before running the scripts.
 
 * **Etherscan API Key** (For Ethereum/Base/Arbitrum): Get one [here](https://etherscan.io/myapikey).
@@ -40,9 +40,9 @@ $env:HELIUS_API_KEY="your_key_here"
 
 ---
 
-##🛠️ Usage (CLI)There are three main modes. The Solana script currently supports advanced network scanning.
+## 🛠️ Usage (CLI)There are three main modes. The Solana script currently supports advanced network scanning.
 
-###1. Profiling a Target (The "Dossier")Generates a behavioral profile including sleep patterns, risk score, and occupation.
+### 1. Profiling a Target (The "Dossier")Generates a behavioral profile including sleep patterns, risk score, and occupation.
 
 ```bash
 # Solana
@@ -53,7 +53,7 @@ python gator_evm.py profile 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --chain e
 
 ```
 
-###2. Finding Connections (Multi-Wallet Check)This command takes a list of **multiple wallet addresses** and checks if they have ever interacted directly (transfers, swaps, etc.).
+### 2. Finding Connections (Multi-Wallet Check)This command takes a list of **multiple wallet addresses** and checks if they have ever interacted directly (transfers, swaps, etc.).
 
 * **Goal:** Determine if "Wallet A," "Wallet B," and "Wallet C" are actually the same person or working together.
 * **Output:** Generates a "Connection Map" showing transaction counts and volume between all listed addresses.
@@ -64,7 +64,7 @@ python gator_solana.py connect WalletAddressA WalletAddressB WalletAddressC
 
 ```
 
-###3. Network Scanning (The "Spider" Mode)**Solana Only:** This maps the target's network to N degrees of separation. This is useful for finding "Cluster Wallets" or money laundering hops.
+### 3. Network Scanning (The "Spider" Mode)**Solana Only:** This maps the target's network to N degrees of separation. This is useful for finding "Cluster Wallets" or money laundering hops.
 
 * **`--depth`**: How many "hops" to follow.
 * `1`: Only direct connections.
@@ -84,9 +84,9 @@ python gator_solana.py scan 5Q544fKrFoe... --depth 3 --limit 50
 
 ---
 
-##🎨 Frontend Integration GuideThe goal is to turn these CLI scripts into a "God Mode" dashboard.
+## 🎨 Frontend Integration GuideThe goal is to turn these CLI scripts into a "God Mode" dashboard.
 
-###Architecture RecommendationDo not call these scripts via `subprocess`. Instead, import the functions directly into a backend API (like FastAPI or Flask).
+### Architecture RecommendationDo not call these scripts via `subprocess`. Instead, import the functions directly into a backend API (like FastAPI or Flask).
 
 **Example Backend Wrapper:**
 
@@ -119,9 +119,9 @@ def get_profile(address: str):
 
 ```
 
-###Visualization RequirementsThe frontend should have **3 Main Panels**:
+### Visualization RequirementsThe frontend should have **3 Main Panels**:
 
-####Panel 1: The "Sleep Window" (Timezone Leak)* **Data Source:** `df['hour']` (0-23 UTC).
+#### Panel 1: The "Sleep Window" (Timezone Leak)* **Data Source:** `df['hour']` (0-23 UTC).
 * **Component:** Bar Chart.
 * **Goal:** Highlight the 4-6 hour gap where activity drops to near zero.
 * **Inference:**
@@ -131,7 +131,7 @@ def get_profile(address: str):
 
 
 
-####Panel 2: Complexity Map (Scatter Plot)* **Data Source:** X-axis = `Time (Hour)`, Y-axis = `Compute Units` (Solana) or `Gas Used` (EVM).
+#### Panel 2: Complexity Map (Scatter Plot)* **Data Source:** X-axis = `Time (Hour)`, Y-axis = `Compute Units` (Solana) or `Gas Used` (EVM).
 * **Component:** Scatter Plot.
 * **Color Coding:**
 * 🟢 Green: Low Compute (Simple Transfers)
@@ -140,15 +140,15 @@ def get_profile(address: str):
 
 * **Goal:** If you see "Red Dots" appearing during the "Sleep Window," it's likely a **Bot**.
 
-####Panel 3: Risk Radar (Pie/Bar)* **Data Source:** `probs` object (Bot %, Whale %, Degen %).
+#### Panel 3: Risk Radar (Pie/Bar)* **Data Source:** `probs` object (Bot %, Whale %, Degen %).
 * **Component:** Radar Chart or Progress Bars.
 * **Goal:** Show the likelihood of the entity being a Bot vs. Human.
 
 ---
 
-##👨‍💻 Developer Guide: Customizing the LogicFor the junior devs: Here is where you can tweak the "brains" of the tool in `gator_solana.py` and `gator_evm.py`.
+## 👨‍💻 Developer Guide: Customizing the LogicFor the junior devs: Here is where you can tweak the "brains" of the tool in `gator_solana.py` and `gator_evm.py`.
 
-###1. Adjusting "Whale" ThresholdsIf you want to change what counts as a "Whale" or "High Complexity," look for the `calculate_probabilities` function.
+### 1. Adjusting "Whale" ThresholdsIf you want to change what counts as a "Whale" or "High Complexity," look for the `calculate_probabilities` function.
 
 ```python
 # gator_solana.py
@@ -158,7 +158,7 @@ if avg_cu > 300000:
 
 ```
 
-###2. Customizing Network Depth LogicThe `scan_network` function in `gator_solana.py` currently connects *any* wallet it finds. You can filter this to reduce noise.
+### 2. Customizing Network Depth LogicThe `scan_network` function in `gator_solana.py` currently connects *any* wallet it finds. You can filter this to reduce noise.
 
 **Idea:** Only follow connections where the transaction value > 10 SOL.
 
@@ -169,7 +169,7 @@ if tx_value > 10:  # You will need to extract 'lamports' from tx_details
 
 ```
 
-###3. Adding New LabelsUpdate the `KNOWN_LABELS` dictionary at the top of the script to tag your own known wallets (e.g., your company's cold storage or competitor wallets).
+### 3. Adding New LabelsUpdate the `KNOWN_LABELS` dictionary at the top of the script to tag your own known wallets (e.g., your company's cold storage or competitor wallets).
 
 ```python
 KNOWN_LABELS = {
@@ -181,8 +181,7 @@ KNOWN_LABELS = {
 
 ---
 
-##⚠️ DisclaimerThis tool uses **only public data**. It does not break encryption or access private keys. It is strictly for educational research and behavioral analysis.
+## ⚠️ DisclaimerThis tool uses **only public data**. It does not break encryption or access private keys. It is strictly for educational research and behavioral analysis.
 
 ```
 
-```
