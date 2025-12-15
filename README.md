@@ -1,4 +1,4 @@
-```markdown
+
 # 🐊 Gator OSINT Suite (EVM & Solana)
 
 **Gator** is a behavioral profiling tool for blockchain addresses. Unlike standard block explorers that show *what* happened, Gator uses side-channel analysis (Time, Gas/Compute, Failure Rates) to determine **who** is behind a wallet.
