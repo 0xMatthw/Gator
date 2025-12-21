@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GATOR - Blockchain Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+            background: #000000;
+            color: #e5e7eb;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo img {
+            height: 50px;
+            width: auto;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            font-size: 13px;
+            color: #3b82f6;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: rgba(3, 3, 3, 0.99);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .search-section h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: #f9fafb;
+        }
+
+        .search-section p {
+            font-size: 15px;
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 12px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 16px 24px;
+            background: rgba(25, 25, 25, 0.9);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            color: #f9fafb;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(30, 30, 30, 1);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-btn {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .search-btn:disabled {
+            background: #374151;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .disclaimer {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 20px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        /* Wallet Info Card */
+        .wallet-info {
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .wallet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .wallet-address {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+
+        .wallet-id {
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            color: #f9fafb;
+        }
+
+        .wallet-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .stat-value.high {
+            color: #10b981;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        /* Card */
+        .card {
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 25px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            font-size: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f9fafb;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .chart-container.small {
+            height: 250px;
+        }
+
+        /* Profile Classification */
+        .profile-bar {
+            margin-bottom: 15px;
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .profile-name {
+            font-size: 14px;
+            color: #d1d5db;
+        }
+
+        .profile-percent {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f9fafb;
+        }
+
+        .profile-bar-bg {
+            height: 32px;
+            background: rgba(30, 30, 30, 0.6);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .profile-bar-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding-left: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: width 1s ease-out;
+        }
+
+        .profile-bar-fill.blue {
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .profile-bar-fill.green {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        }
+
+        .profile-bar-fill.orange {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .profile-bar-fill.red {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .profile-bar-fill.purple {
+            background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        /* Key Insights */
+        .insights-list {
+            list-style: none;
+        }
+
+        .insight-item {
+            padding: 15px;
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 3px solid #3b82f6;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-box {
+                flex-direction: column;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .wallet-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <img src="/static/gator-logo.png" alt="GATOR">
+            </div>
+            <div class="badge">
+                <span>🔒</span>
+                <span>Public Data Analysis</span>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <h2>Wallet Analysis</h2>
+            <p>Enter a blockchain wallet address to analyze behavioral patterns and risk indicators</p>
+            
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="wallet-input"
+                    placeholder="5mv1uyHdbqYrzhCdUzt7caxbWuyg1LQCWn4ngCd6zRDttL6TnLofu1RysYw1fGpbfA8aHdx5vT9r1"
+                    value="">
+                <button class="search-btn" id="analyze-btn" onclick="analyzeWallet()">
+                    <span>🔍</span>
+                    <span>Analyze</span>
+                </button>
+            </div>
+
+            <div class="disclaimer">
+                <span>ℹ️</span>
+                <span>Analysis is based on public blockchain data. Results are probabilistic behavioral inferences.</span>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing blockchain transactions...</p>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <!-- Wallet Info -->
+            <div class="wallet-info">
+                <div class="wallet-header">
+                    <div>
+                        <div class="wallet-address">Wallet Address</div>
+                        <div class="wallet-id" id="wallet-display"></div>
+                    </div>
+                    <div class="wallet-stats">
+                        <div class="stat-box">
+                            <div class="stat-label">Confidence</div>
+                            <div class="stat-value high" id="confidence-display">High</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Transactions</div>
+                            <div class="stat-value" id="tx-count-display">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid">
+                <!-- Activity Pattern -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">🕒</span>
+                        <span class="card-title">Activity Pattern (24h)</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="activity-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Geographic Origin -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">🌍</span>
+                        <span class="card-title">Geographic Origin</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="geographic-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Weekly Pattern -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">📅</span>
+                        <span class="card-title">Weekly Pattern</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="weekly-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Trader Classification -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">📊</span>
+                        <span class="card-title">Trader Classification</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="trader-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction Complexity -->
+            <div class="grid single">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">⚡</span>
+                        <span class="card-title">Transaction Complexity</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="complexity-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk & Insights -->
+            <div class="grid">
+                <!-- Risk Assessment -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">🛡️</span>
+                        <span class="card-title">Risk Assessment</span>
+                    </div>
+                    <div class="chart-container small">
+                        <canvas id="risk-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Key Insights -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">💡</span>
+                        <span class="card-title">Key Insights</span>
+                    </div>
+                    <ul class="insights-list" id="insights-list"></ul>
+                </div>
+            </div>
+
+            <!-- Profile Classification -->
+            <div class="grid single">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">👤</span>
+                        <span class="card-title">Profile Classification</span>
+                    </div>
+                    <div id="profile-classification"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let charts = {};
+
+        async function analyzeWallet() {
+            const wallet = document.getElementById('wallet-input').value.trim();
+            
+            if (!wallet) {
+                alert('Please enter a wallet address');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('analyze-btn').disabled = true;
+
+            // Scroll to loading
+            document.getElementById('loading').scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const response = await fetch(`${API_BASE}/analyze-wallet`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wallet })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Analysis failed');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+                // Scroll to results
+                setTimeout(() => {
+                    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+                }, 300);
+
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('analyze-btn').disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // Update wallet info
+            document.getElementById('wallet-display').textContent = 
+                data.wallet.substring(0, 8) + '...' + data.wallet.substring(data.wallet.length - 4);
+            document.getElementById('confidence-display').textContent = data.confidence;
+            document.getElementById('tx-count-display').textContent = data.total_transactions.toLocaleString();
+
+            // Destroy old charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            // Activity Pattern Chart
+            charts.activity = new Chart(document.getElementById('activity-chart'), {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => i),
+                    datasets: [{
+                        label: 'Active',
+                        data: data.activity_pattern.hourly,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+
+            // Geographic Chart
+            charts.geographic = new Chart(document.getElementById('geographic-chart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Asia/Pacific', 'Europe', 'Americas', 'Other'],
+                    datasets: [{
+                        data: [
+                            data.geographic_origin.asia_pacific,
+                            data.geographic_origin.europe,
+                            data.geographic_origin.americas,
+                            data.geographic_origin.other
+                        ],
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#9ca3af', padding: 15 }
+                        }
+                    }
+                }
+            });
+
+            // Weekly Pattern Chart
+            charts.weekly = new Chart(document.getElementById('weekly-chart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        data: data.activity_pattern.daily,
+                        backgroundColor: ['#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6', '#f59e0b', '#f59e0b'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+
+            // Trader Classification Chart
+            charts.trader = new Chart(document.getElementById('trader-chart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Professional', 'Retail', 'Institutional'],
+                    datasets: [{
+                        data: [
+                            data.trader_classification.professional,
+                            data.trader_classification.retail,
+                            data.trader_classification.institutional
+                        ],
+                        backgroundColor: ['#f59e0b', '#3b82f6', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#9ca3af', padding: 15 }
+                        }
+                    }
+                }
+            });
+
+            // Transaction Complexity Chart
+            const complexityData = data.transaction_complexity;
+            charts.complexity = new Chart(document.getElementById('complexity-chart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Complex',
+                            data: complexityData.filter(t => t.type === 'Complex').map(t => ({ x: t.hour, y: t.compute_units })),
+                            backgroundColor: '#8b5cf6',
+                            pointRadius: 6
+                        },
+                        {
+                            label: 'Jito Bundle',
+                            data: complexityData.filter(t => t.type === 'Jito Bundle').map(t => ({ x: t.hour, y: t.compute_units })),
+                            backgroundColor: '#a855f7',
+                            pointRadius: 6
+                        },
+                        {
+                            label: 'Standard',
+                            data: complexityData.filter(t => t.type === 'Standard').map(t => ({ x: t.hour, y: t.compute_units })),
+                            backgroundColor: '#3b82f6',
+                            pointRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#9ca3af', padding: 15 }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' },
+                            max: 24
+                        },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+
+            // Risk Assessment Chart
+            charts.risk = new Chart(document.getElementById('risk-chart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                    datasets: [{
+                        data: [
+                            data.risk_assessment.low_risk,
+                            data.risk_assessment.medium_risk,
+                            data.risk_assessment.high_risk
+                        ],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+
+            // Key Insights
+            const insightsList = document.getElementById('insights-list');
+            insightsList.innerHTML = data.key_insights.map(insight => 
+                `<li class="insight-item">• ${insight}</li>`
+            ).join('');
+
+            // Profile Classification
+            const profiles = data.profile_classification;
+            const profileHTML = `
+                <div class="profile-bar">
+                    <div class="profile-header">
+                        <span class="profile-name">Bot (Automated)</span>
+                        <span class="profile-percent">${profiles.bot.toFixed(1)}%</span>
+                    </div>
+                    <div class="profile-bar-bg">
+                        <div class="profile-bar-fill blue" style="width: ${profiles.bot}%">${profiles.bot.toFixed(1)}%</div>
+                    </div>
+                </div>
+                <div class="profile-bar">
+                    <div class="profile-header">
+                        <span class="profile-name">Institutional</span>
+                        <span class="profile-percent">${profiles.institutional.toFixed(1)}%</span>
+                    </div>
+                    <div class="profile-bar-bg">
+                        <div class="profile-bar-fill green" style="width: ${profiles.institutional}%">${profiles.institutional.toFixed(1)}%</div>
+                    </div>
+                </div>
+                <div class="profile-bar">
+                    <div class="profile-header">
+                        <span class="profile-name">Whale</span>
+                        <span class="profile-percent">${profiles.whale.toFixed(1)}%</span>
+                    </div>
+                    <div class="profile-bar-bg">
+                        <div class="profile-bar-fill orange" style="width: ${profiles.whale}%">${profiles.whale.toFixed(1)}%</div>
+                    </div>
+                </div>
+                <div class="profile-bar">
+                    <div class="profile-header">
+                        <span class="profile-name">Airdrop Farmer</span>
+                        <span class="profile-percent">${profiles.airdrop_farmer.toFixed(1)}%</span>
+                    </div>
+                    <div class="profile-bar-bg">
+                        <div class="profile-bar-fill red" style="width: ${profiles.airdrop_farmer}%">${profiles.airdrop_farmer.toFixed(1)}%</div>
+                    </div>
+                </div>
+                <div class="profile-bar">
+                    <div class="profile-header">
+                        <span class="profile-name">Professional</span>
+                        <span class="profile-percent">${profiles.professional.toFixed(1)}%</span>
+                    </div>
+                    <div class="profile-bar-bg">
+                        <div class="profile-bar-fill purple" style="width: ${profiles.professional}%">${profiles.professional.toFixed(1)}%</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('profile-classification').innerHTML = profileHTML;
+
+            // Show results
+            document.getElementById('results').classList.add('show');
+        }
+
+        // Allow Enter key to trigger analysis
+        document.getElementById('wallet-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                analyzeWallet();
+            }
+        });
+    </script>
+</body>
+</html>
