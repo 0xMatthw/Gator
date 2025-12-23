@@ -1,13 +1,14 @@
 
 # 🐊 Gator OSINT Suite (EVM & Solana)
 
-**Gator** is a behavioral profiling tool for blockchain addresses. Unlike standard block explorers that show *what* happened, Gator uses side-channel analysis (Time, Gas/Compute, Failure Rates) to determine **who** is behind a wallet.
+**Gator** is a behavioral profiling tool for blockchain addresses. Unlike standard block explorers that show *what* happened, Gator uses side-channel analysis (Time, Gas/Compute, Failure Rates, **Reaction Speed**) to determine **who** is behind a wallet.
 
 It answers questions like:
 * "Is this user a human or a bot?"
 * "What timezone do they sleep in?" (London vs. NY vs. Tokyo)
 * "Are they using privacy mixers or complex DeFi scripts?"
 * "Are these separate wallets actually connected or funding each other?"
+* **NEW:** "How fast do they react to receiving tokens?" (Bots: <5s, Humans: >30s)
 
 ---
 
@@ -100,20 +101,26 @@ app = FastAPI()
 @app.get("/profile/{address}")
 def get_profile(address: str):
     # 1. Run the analysis logic
-    df = analyze_wallet(address)
+    # Note: For EVM, analyze_wallet returns (df, tx_details_list)
+    df, tx_details_list = analyze_wallet(address)  # EVM
+    # df = analyze_wallet(address)  # Solana (single return)
     
     # 2. Process metrics
     hourly_counts = [0] * 24
+    daily_counts = [0] * 7
     for _, row in df.iterrows():
         hourly_counts[row["hour"]] += 1
+        daily_counts[row["day_of_week"]] += 1
         
     sleep = detect_sleep_window(hourly_counts)
-    probs = calculate_probabilities(df, ... )
+    reaction = analyze_reaction_speed(address, tx_details_list)  # Add reaction analysis
+    probs = calculate_probabilities(df, hourly_counts, daily_counts, sleep, reaction)
     
     # 3. Return JSON for your frontend
     return {
         "probabilities": probs.__dict__,
         "sleep_window": sleep.__dict__,
+        "reaction_speed": reaction.__dict__,  # Add reaction speed data
         "transactions": df.to_dict(orient="records")
     }
 
@@ -143,6 +150,54 @@ def get_profile(address: str):
 #### Panel 3: Risk Radar (Pie/Bar)* **Data Source:** `probs` object (Bot %, Whale %, Degen %).
 * **Component:** Radar Chart or Progress Bars.
 * **Goal:** Show the likelihood of the entity being a Bot vs. Human.
+
+#### Panel 4: Reaction Speed Analysis (Bar Chart)* **Data Source:** `reaction` object from `analyze_reaction_speed()`.
+* **Component:** Bar Chart showing Instant/Fast/Human reaction distribution.
+* **Goal:** Visualize bot detection metrics with bot confidence score.
+* **Available for:** Both Solana and EVM chains.
+
+---
+
+## ⚡ Reaction Speed Analysis (Bot Detection)
+
+**Available for both Solana and EVM chains**
+
+Gator includes advanced reaction speed analysis to detect bots with high precision. The algorithm measures the time between **receiving tokens/ETH** and **taking action** (selling, swapping, transferring). This works for both native tokens and ERC20 token transfers on EVM chains.
+
+### How It Works:
+1. **Analyzes consecutive transactions** to find "receive → action" patterns
+2. **Calculates time deltas** between receiving and acting on tokens
+3. **Categorizes reactions:**
+   - **Instant (<5s)**: Nearly impossible for humans → **BOT**
+   - **Fast (5-30s)**: Possible but suspicious → **Likely BOT**
+   - **Human (>30s)**: Normal human decision time → **HUMAN**
+
+### Output Metrics:
+- **Bot Confidence Score** (0-100%)
+- **Average & Median Reaction Times**
+- **Fastest Reaction** (if <1s, definitely a bot)
+- **Reaction Distribution** (% instant vs fast vs human)
+
+### Example Output:
+```
+REACTION SPEED ANALYSIS (Bot Detection)
+----------------------------------------------------------------------
+Reaction Pairs:     64
+Avg Reaction:       17.44s
+Median Reaction:    12.00s
+Fastest Reaction:   0.00s
+Instant (<5s):      4 (6.2%)
+Fast (5-30s):       57 (89.1%)
+Human (>30s):       3 (4.7%)
+Bot Confidence:    70.0%
+[WARNING] HIGH BOT PROBABILITY: Average reaction 17.4s
+```
+
+### Use Cases:
+- **MEV Bot Detection**: Instantly identify arbitrage bots
+- **Trading Bot Identification**: Find automated trading strategies
+- **Human vs Bot Classification**: High-confidence separation
+- **Scam Detection**: Bots often show instant reactions to incoming funds
 
 ---
 
@@ -178,6 +233,30 @@ KNOWN_LABELS = {
 }
 
 ```
+
+### 4. Adjusting Reaction Speed ThresholdsYou can customize the bot detection thresholds in the `analyze_reaction_speed()` function in both `gator_solana.py` and `gator_evm.py`:
+
+```python
+# Current thresholds:
+# - Instant: < 5 seconds
+# - Fast: 5-30 seconds  
+# - Human: > 30 seconds
+# - Analysis window: 1 hour (reactions beyond are excluded)
+
+# Make it more strict (only flag super-fast bots):
+if time_delta < 2:  # Instead of 5
+    instant_count += 1
+
+# Or adjust the bot confidence calculation:
+if instant_ratio > 0.5:  # Instead of 0.7
+    bot_confidence = 95.0
+
+# Change analysis window (default is 3600 seconds = 1 hour):
+if time_delta > 1800:  # 30 minutes instead of 1 hour
+    break
+```
+
+**Note for EVM**: The analysis includes both regular ETH transactions and ERC20 token transfers. Token transfers are automatically detected and included in the reaction speed analysis.
 
 ---
 

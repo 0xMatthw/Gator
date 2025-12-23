@@ -38,7 +38,7 @@ import json
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-RPC_URL = "https://mainnet.helius-rpc.com/?api-key=307e88f2-33c4-467c-968a-69f194fac6d8"
+RPC_URL = "https://mainnet.helius-rpc.com/?api-key=d79d34cb-620d-419c-9d39-c57b3c25a099"
 DEFAULT_LIMIT = 100
 
 # Known labels for common addresses
@@ -104,6 +104,19 @@ class WalletConnection:
     direction: str = "bidirectional"  # "a_to_b", "b_to_a", "bidirectional"
 
 
+@dataclass
+class ReactionSpeedAnalysis:
+    """Analysis of reaction speed for bot detection"""
+    bot_confidence: float = 0.0
+    avg_reaction_time: float = 0.0
+    median_reaction_time: float = 0.0
+    fastest_reaction: float = 0.0
+    instant_reactions: int = 0  # < 5 seconds
+    fast_reactions: int = 0  # 5-30 seconds
+    human_reactions: int = 0  # > 30 seconds
+    total_reaction_pairs: int = 0
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # RPC FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -149,19 +162,20 @@ def get_label(address: str) -> str:
 # PROFILE COMMAND - Single Wallet Analysis
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def analyze_wallet(wallet: str, limit: int = 100) -> pd.DataFrame:
-    """Fetch and analyze wallet transactions"""
+def analyze_wallet(wallet: str, limit: int = 100) -> tuple:
+    """Fetch and analyze wallet transactions - returns (DataFrame, tx_details_list)"""
     print(f"\n[*] Fetching last {limit} transactions...")
     
     signatures = fetch_signatures(wallet, limit)
     
     if not signatures:
-        return pd.DataFrame()
+        return pd.DataFrame(), []
     
     print(f"[+] Found {len(signatures)} transactions")
     print(f"[-] Analyzing details...\n")
     
     transactions = []
+    tx_details_list = []
     
     for idx, sig_info in enumerate(signatures):
         progress = (idx + 1) / len(signatures)
@@ -203,12 +217,19 @@ def analyze_wallet(wallet: str, limit: int = 100) -> pd.DataFrame:
             "fee_sol": fee / 1e9,
             "instructions": instructions,
             "success": sig_info.get("err") is None,
-            "slot": sig_info.get("slot", 0)
+            "slot": sig_info.get("slot", 0),
+            "block_time": block_time
+        })
+        
+        # Store tx details for reaction speed analysis
+        tx_details_list.append({
+            "timestamp": block_time,
+            "details": tx_details
         })
     
     print(f"\n[+] Analyzed {len(transactions)} transactions\n")
     
-    return pd.DataFrame(transactions)
+    return pd.DataFrame(transactions), tx_details_list
 
 
 def detect_sleep_window(hourly_counts: list) -> SleepWindow:
@@ -231,6 +252,209 @@ def detect_sleep_window(hourly_counts: list) -> SleepWindow:
         activity_during_sleep=min_sum,
         confidence=confidence
     )
+
+
+def analyze_reaction_speed(wallet: str, tx_details_list: list) -> ReactionSpeedAnalysis:
+    """
+    Analyze reaction speed between token receives and subsequent actions.
+    Bot Detection Logic: Humans take time to think (>30s), Bots react instantly (<5s)
+    """
+    print(f"\n[*] Analyzing reaction speed for bot detection...")
+    
+    if not tx_details_list:
+        return ReactionSpeedAnalysis()
+    
+    # Sort by timestamp (oldest first)
+    transactions = sorted(tx_details_list, key=lambda x: x["timestamp"])
+    
+    reaction_times = []
+    instant_count = 0
+    fast_count = 0
+    human_count = 0
+    
+    total_pairs = len(transactions) - 1
+    
+    # Analyze consecutive transactions for reaction patterns
+    for i in range(total_pairs):
+        # Show progress
+        if i % 10 == 0 or i == total_pairs - 1:
+            progress = (i + 1) / total_pairs
+            bar_len = 30
+            filled = int(bar_len * progress)
+            bar = '█' * filled + '░' * (bar_len - filled)
+            print(f"\r    [{bar}] {i + 1}/{total_pairs} pairs", end="", flush=True)
+        
+        current_tx = transactions[i]
+        next_tx = transactions[i + 1]
+        
+        # Calculate time delta in seconds
+        time_delta = next_tx["timestamp"] - current_tx["timestamp"]
+        
+        # Check if current transaction involves receiving tokens
+        # and next transaction involves sending/swapping
+        current_has_receive = has_token_receive(current_tx["details"], wallet)
+        next_has_action = has_token_action(next_tx["details"], wallet)
+        
+        # If pattern detected: receive -> action
+        if current_has_receive and next_has_action and time_delta <= 300:  # Within 5 minutes
+            reaction_times.append(time_delta)
+            
+            if time_delta < 5:
+                instant_count += 1
+            elif time_delta < 30:
+                fast_count += 1
+            else:
+                human_count += 1
+    
+    print()  # New line after progress bar
+    
+    # Calculate metrics
+    total_reactions = len(reaction_times)
+    
+    if total_reactions == 0:
+        return ReactionSpeedAnalysis()
+    
+    avg_reaction = sum(reaction_times) / total_reactions
+    median_reaction = sorted(reaction_times)[total_reactions // 2] if total_reactions > 0 else 0
+    fastest_reaction = min(reaction_times) if reaction_times else 0
+    
+    # Bot confidence calculation
+    instant_ratio = instant_count / total_reactions
+    fast_ratio = fast_count / total_reactions
+    human_ratio = human_count / total_reactions
+    
+    # High confidence bot if mostly instant reactions
+    if instant_ratio > 0.7:
+        bot_confidence = 95.0
+    elif instant_ratio > 0.5:
+        bot_confidence = 85.0
+    elif instant_ratio + fast_ratio > 0.7:
+        bot_confidence = 70.0
+    elif avg_reaction < 10:
+        bot_confidence = 60.0
+    elif avg_reaction < 30:
+        bot_confidence = 40.0
+    else:
+        bot_confidence = max(0, 30 - (human_ratio * 40))
+    
+    print(f"[+] Analyzed {total_reactions} reaction patterns")
+    
+    return ReactionSpeedAnalysis(
+        bot_confidence=bot_confidence,
+        avg_reaction_time=avg_reaction,
+        median_reaction_time=median_reaction,
+        fastest_reaction=fastest_reaction,
+        instant_reactions=instant_count,
+        fast_reactions=fast_count,
+        human_reactions=human_count,
+        total_reaction_pairs=total_reactions
+    )
+
+
+def has_token_receive(tx_details: dict, wallet: str) -> bool:
+    """Check if transaction involves receiving tokens"""
+    if not tx_details or not tx_details.get("meta"):
+        return False
+    
+    try:
+        # Check post token balances - if balance increased, tokens were received
+        post_balances = tx_details["meta"].get("postTokenBalances", [])
+        pre_balances = tx_details["meta"].get("preTokenBalances", [])
+        
+        # Create a map of pre-balances
+        pre_balance_map = {}
+        for balance in pre_balances:
+            owner = balance.get("owner")
+            if owner == wallet:
+                mint = balance.get("mint", "")
+                amount = float(balance.get("uiTokenAmount", {}).get("uiAmount", 0))
+                pre_balance_map[mint] = amount
+        
+        # Check if any post-balance increased
+        for balance in post_balances:
+            owner = balance.get("owner")
+            if owner == wallet:
+                mint = balance.get("mint", "")
+                post_amount = float(balance.get("uiTokenAmount", {}).get("uiAmount", 0))
+                pre_amount = pre_balance_map.get(mint, 0)
+                
+                if post_amount > pre_amount:
+                    return True
+        
+        # Also check SOL balance increase
+        account_keys = tx_details.get("transaction", {}).get("message", {}).get("accountKeys", [])
+        pre_sol = tx_details["meta"].get("preBalances", [])
+        post_sol = tx_details["meta"].get("postBalances", [])
+        
+        for idx, key in enumerate(account_keys):
+            addr = key.get("pubkey", "") if isinstance(key, dict) else str(key)
+            if addr == wallet and idx < len(pre_sol) and idx < len(post_sol):
+                if post_sol[idx] > pre_sol[idx]:
+                    return True
+        
+    except Exception:
+        pass
+    
+    return False
+
+
+def has_token_action(tx_details: dict, wallet: str) -> bool:
+    """Check if transaction involves sending/swapping tokens"""
+    if not tx_details or not tx_details.get("meta"):
+        return False
+    
+    try:
+        # Check if wallet initiated the transaction (is signer)
+        account_keys = tx_details.get("transaction", {}).get("message", {}).get("accountKeys", [])
+        
+        for key in account_keys:
+            addr = key.get("pubkey", "") if isinstance(key, dict) else str(key)
+            is_signer = key.get("signer", False) if isinstance(key, dict) else False
+            
+            if addr == wallet and is_signer:
+                # Check if tokens were sent (balance decreased)
+                post_balances = tx_details["meta"].get("postTokenBalances", [])
+                pre_balances = tx_details["meta"].get("preTokenBalances", [])
+                
+                # Create a map of pre-balances
+                pre_balance_map = {}
+                for balance in pre_balances:
+                    owner = balance.get("owner")
+                    if owner == wallet:
+                        mint = balance.get("mint", "")
+                        amount = float(balance.get("uiTokenAmount", {}).get("uiAmount", 0))
+                        pre_balance_map[mint] = amount
+                
+                # Check if any balance decreased
+                for balance in post_balances:
+                    owner = balance.get("owner")
+                    if owner == wallet:
+                        mint = balance.get("mint", "")
+                        post_amount = float(balance.get("uiTokenAmount", {}).get("uiAmount", 0))
+                        pre_amount = pre_balance_map.get(mint, 0)
+                        
+                        if post_amount < pre_amount:
+                            return True
+                
+                # Also check SOL balance decrease (excluding fees)
+                pre_sol = tx_details["meta"].get("preBalances", [])
+                post_sol = tx_details["meta"].get("postBalances", [])
+                fee = tx_details["meta"].get("fee", 0)
+                
+                for idx, key2 in enumerate(account_keys):
+                    addr2 = key2.get("pubkey", "") if isinstance(key2, dict) else str(key2)
+                    if addr2 == wallet and idx < len(pre_sol) and idx < len(post_sol):
+                        balance_decrease = pre_sol[idx] - post_sol[idx]
+                        # If decrease is more than just the fee, tokens were sent
+                        if balance_decrease > fee * 1.5:  # 1.5x buffer
+                            return True
+                
+                return True  # Is signer, so some action was taken
+        
+    except Exception:
+        pass
+    
+    return False
 
 
 def calculate_probabilities(df: pd.DataFrame, hourly_counts: list, daily_counts: list, sleep: SleepWindow) -> ProfileProbabilities:
@@ -356,7 +580,7 @@ def get_complexity_label(cu: float) -> str:
         return 'Heavy'
 
 
-def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities, sleep: SleepWindow):
+def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities, sleep: SleepWindow, reaction: ReactionSpeedAnalysis):
     """Generate profile visualization"""
     
     hourly_counts = [0] * 24
@@ -381,7 +605,7 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
             panic_count += 1
     
     plt.style.use('dark_background')
-    fig = plt.figure(figsize=(16, 14))
+    fig = plt.figure(figsize=(16, 16))  # Increased height for reaction speed panel
     
     bg_color = '#0a0a0a'
     panel_color = '#111111'
@@ -395,11 +619,11 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
     accent_purple = '#a855f7'
     
     fig.patch.set_facecolor(bg_color)
-    fig.suptitle(f"🐊 GATOR PROFILE — {wallet[:12]}...{wallet[-6:]}", 
+    fig.suptitle(f"GATOR PROFILE — {wallet[:12]}...{wallet[-6:]}", 
                  fontsize=16, color=accent_green, fontweight='bold', y=0.98)
     
     # Panel 1: Profile probabilities
-    ax0 = fig.add_subplot(4, 2, (1, 2))
+    ax0 = fig.add_subplot(5, 2, (1, 2))  # Changed to 5x2 grid
     ax0.set_facecolor(panel_color)
     
     categories = ['Bot (Automated)', 'Europe/Africa', 'Americas', 'Asia/Pacific',
@@ -423,7 +647,7 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
     ax0.invert_yaxis()
     
     # Panel 2: Circadian rhythm
-    ax1 = fig.add_subplot(4, 2, 3)
+    ax1 = fig.add_subplot(5, 2, 3)
     ax1.set_facecolor(panel_color)
     
     bar_colors = []
@@ -458,7 +682,7 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
                edgecolor=grid_color, fontsize=8)
     
     # Panel 3: Geographic pie
-    ax2 = fig.add_subplot(4, 2, 4)
+    ax2 = fig.add_subplot(5, 2, 4)
     ax2.set_facecolor(panel_color)
     
     geo_labels = ['Europe/Africa', 'Americas', 'Asia/Pacific']
@@ -470,7 +694,7 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
     ax2.set_title("GEOGRAPHIC PROBABILITY", color=accent_cyan, fontsize=11, fontweight='bold')
     
     # Panel 4: Weekly routine
-    ax3 = fig.add_subplot(4, 2, 5)
+    ax3 = fig.add_subplot(5, 2, 5)
     ax3.set_facecolor(panel_color)
     
     day_colors = [accent_cyan if i < 5 else accent_yellow for i in range(7)]
@@ -488,7 +712,7 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
              bbox=dict(boxstyle='round', facecolor=panel_color, edgecolor=accent_yellow, alpha=0.8))
     
     # Panel 5: Occupation pie
-    ax4 = fig.add_subplot(4, 2, 6)
+    ax4 = fig.add_subplot(5, 2, 6)
     ax4.set_facecolor(panel_color)
     
     ax4.pie([probs.retail_hobbyist, probs.professional], labels=['Retail/Hobbyist', 'Professional'],
@@ -497,7 +721,7 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
     ax4.set_title("OCCUPATION PROBABILITY", color=accent_yellow, fontsize=11, fontweight='bold')
     
     # Panel 6: Complexity scatter
-    ax5 = fig.add_subplot(4, 2, 7)
+    ax5 = fig.add_subplot(5, 2, 7)
     ax5.set_facecolor(panel_color)
     
     colors = [get_complexity_color(cu) for cu in df["compute_units"]]
@@ -533,7 +757,7 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
     ax5.legend(handles=legend_elements, loc='upper right', facecolor=panel_color, edgecolor=grid_color, fontsize=7, ncol=2)
     
     # Panel 7: Risk profile
-    ax6 = fig.add_subplot(4, 2, 8)
+    ax6 = fig.add_subplot(5, 2, 8)
     ax6.set_facecolor(panel_color)
     
     risk_labels = ['Whale\n(High Value)', 'Degen\n(High Risk)', 'Bot\n(Automated)']
@@ -552,13 +776,77 @@ def visualize_profile(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities
     ax6.tick_params(colors=text_color)
     ax6.grid(True, alpha=0.2, color=grid_color, axis='y')
     
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.94)
+    # Panel 8: Reaction Speed Analysis (NEW)
+    ax7 = fig.add_subplot(5, 2, (9, 10))  # Spans both columns in row 5
+    ax7.set_facecolor(panel_color)
+    
+    if reaction.total_reaction_pairs > 0:
+        # Create data for visualization
+        categories = ['Instant\n(<5s)', 'Fast\n(5-30s)', 'Human\n(>30s)']
+        counts = [reaction.instant_reactions, reaction.fast_reactions, reaction.human_reactions]
+        colors_reaction = [accent_red, accent_orange, accent_green]
+        
+        # Bar chart of reaction categories
+        bars = ax7.bar(categories, counts, color=colors_reaction, alpha=0.7, edgecolor='white', linewidth=1)
+        
+        # Add counts on bars with better spacing
+        max_count = max(counts) if counts else 1
+        for bar, count in zip(bars, counts):
+            if count > 0:
+                percentage = (count / reaction.total_reaction_pairs) * 100
+                # Position text higher with more padding
+                text_y = bar.get_height() + max_count * 0.05
+                ax7.text(bar.get_x() + bar.get_width()/2, text_y,
+                        f'{count}\n({percentage:.1f}%)', ha='center', va='bottom', 
+                        color='white', fontsize=9, fontweight='bold')
+        
+        # Add metrics text box with smaller font
+        metrics_text = f"Bot: {reaction.bot_confidence:.1f}%\n"
+        metrics_text += f"Avg: {reaction.avg_reaction_time:.1f}s\n"
+        metrics_text += f"Med: {reaction.median_reaction_time:.1f}s\n"
+        metrics_text += f"Min: {reaction.fastest_reaction:.1f}s"
+        
+        # Color code the text box based on bot confidence
+        if reaction.bot_confidence > 70:
+            box_color = accent_red
+            verdict = "⚠️  HIGH BOT"
+        elif reaction.bot_confidence < 30:
+            box_color = accent_green
+            verdict = "✓ HUMAN-LIKE"
+        else:
+            box_color = accent_orange
+            verdict = "⚡ MIXED"
+        
+        ax7.text(0.98, 0.98, f"{verdict}\n{metrics_text}", transform=ax7.transAxes, 
+                ha='right', va='top', color='white', fontsize=8,
+                bbox=dict(boxstyle='round', facecolor=panel_color, edgecolor=box_color, 
+                         linewidth=2, alpha=0.9, pad=0.5))
+        
+        ax7.set_title("REACTION SPEED ANALYSIS", 
+                     color=accent_purple, fontsize=11, fontweight='bold', loc='left', pad=8)
+        ax7.set_ylabel("Count", color=text_color, fontsize=9)
+        # Increase ylim padding for text above bars
+        ax7.set_ylim(0, max_count * 1.35 if max_count > 0 else 10)
+        ax7.tick_params(colors=text_color, labelsize=8, axis='y')
+        ax7.tick_params(colors=text_color, labelsize=9, axis='x')
+        ax7.grid(True, alpha=0.2, color=grid_color, axis='y')
+        
+    else:
+        # No reaction data available
+        ax7.text(0.5, 0.5, "No Reaction Patterns Detected\n\n(Requires consecutive token receive→action sequences)", 
+                transform=ax7.transAxes, ha='center', va='center', 
+                color=text_color, fontsize=11, style='italic')
+        ax7.set_title("REACTION SPEED ANALYSIS", color=accent_purple, 
+                     fontsize=12, fontweight='bold', loc='left')
+        ax7.set_xticks([])
+        ax7.set_yticks([])
+    
+    plt.tight_layout(rect=[0, 0, 1, 0.98], h_pad=1.5, w_pad=1.0)
     
     return fig
 
 
-def print_profile_report(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities, sleep: SleepWindow):
+def print_profile_report(df: pd.DataFrame, wallet: str, probs: ProfileProbabilities, sleep: SleepWindow, reaction: ReactionSpeedAnalysis):
     """Print profile intelligence report"""
     
     total_tx = len(df)
@@ -581,6 +869,9 @@ def print_profile_report(df: pd.DataFrame, wallet: str, probs: ProfileProbabilit
         "Asia/Pacific": "Singapore, Hong Kong, Tokyo, Sydney, Mumbai"
     }
     
+    # Combine bot detection signals
+    combined_bot_score = max(probs.bot, reaction.bot_confidence)
+    
     print("\n" + "═" * 70)
     print(" 🐊 GATOR INTELLIGENCE DOSSIER")
     print("═" * 70)
@@ -591,13 +882,16 @@ def print_profile_report(df: pd.DataFrame, wallet: str, probs: ProfileProbabilit
     
     print("\n 🤖 ENTITY CLASSIFICATION")
     print("─" * 70)
-    if probs.bot > 60:
-        print(f" ├─ Type:           BOT / AUTOMATED ({probs.bot:.1f}%)")
-        print(f" └─ Note:           No human sleep pattern detected")
+    if combined_bot_score > 60:
+        print(f" ├─ Type:           BOT / AUTOMATED ({combined_bot_score:.1f}%)")
+        print(f" ├─ Sleep Pattern:  {probs.bot:.1f}% bot confidence")
+        print(f" ├─ Reaction Speed: {reaction.bot_confidence:.1f}% bot confidence")
+        print(f" └─ Note:           Automated behavior detected")
     else:
-        print(f" ├─ Type:           HUMAN ({100 - probs.bot:.1f}%)")
+        print(f" ├─ Type:           HUMAN ({100 - combined_bot_score:.1f}%)")
         print(f" ├─ Sleep Window:   {sleep.start_hour}:00 → {sleep.end_hour}:00 UTC")
-        print(f" └─ Confidence:     {sleep.confidence:.1f}%")
+        print(f" ├─ Confidence:     {sleep.confidence:.1f}%")
+        print(f" └─ Reaction Speed: {reaction.bot_confidence:.1f}% bot confidence")
     
     print("\n 🌍 GEOGRAPHIC INFERENCE")
     print("─" * 70)
@@ -623,6 +917,24 @@ def print_profile_report(df: pd.DataFrame, wallet: str, probs: ProfileProbabilit
     print(f" ├─ Fail Rate:      {fail_rate:.1f}%")
     print(f" ├─ Whale Prob.:    {probs.whale:.1f}%")
     print(f" └─ Degen Prob.:    {probs.degen:.1f}%")
+    
+    # Reaction Speed Analysis Section
+    if reaction.total_reaction_pairs > 0:
+        print("\n REACTION SPEED ANALYSIS (Bot Detection)")
+        print("─" * 70)
+        print(f" ├─ Reaction Pairs:     {reaction.total_reaction_pairs}")
+        print(f" ├─ Avg Reaction:       {reaction.avg_reaction_time:.2f}s")
+        print(f" ├─ Median Reaction:    {reaction.median_reaction_time:.2f}s")
+        print(f" ├─ Fastest Reaction:   {reaction.fastest_reaction:.2f}s")
+        print(f" ├─ Instant (<5s):      {reaction.instant_reactions} ({reaction.instant_reactions/reaction.total_reaction_pairs*100:.1f}%)")
+        print(f" ├─ Fast (5-30s):       {reaction.fast_reactions} ({reaction.fast_reactions/reaction.total_reaction_pairs*100:.1f}%)")
+        print(f" ├─ Human (>30s):       {reaction.human_reactions} ({reaction.human_reactions/reaction.total_reaction_pairs*100:.1f}%)")
+        print(f" └─ Bot Confidence:     {reaction.bot_confidence:.1f}%")
+        
+        if reaction.bot_confidence > 70:
+            print(f"    ⚠️  HIGH BOT PROBABILITY: Average reaction {reaction.avg_reaction_time:.1f}s")
+        elif reaction.bot_confidence < 30:
+            print(f"    ✓  HUMAN-LIKE BEHAVIOR: Average reaction {reaction.avg_reaction_time:.1f}s")
     
     print("\n" + "═" * 70)
     print(" ⚠️  ALL DATA FROM PUBLIC BLOCKCHAIN — NO ENCRYPTION BROKEN")
@@ -843,7 +1155,7 @@ def visualize_connections(connections: Dict[Tuple[str, str], WalletConnection], 
     ax.set_aspect('equal')
     ax.axis('off')
     
-    ax.set_title("🐊 GATOR - Wallet Connection Map", fontsize=14, color='#22c55e', fontweight='bold')
+    ax.set_title("GATOR - Wallet Connection Map", fontsize=14, color='#22c55e', fontweight='bold')
     
     plt.tight_layout()
     return fig
@@ -960,7 +1272,7 @@ Examples:
     print_banner()
     
     if args.command == "profile":
-        df = analyze_wallet(args.address, args.limit)
+        df, tx_details_list = analyze_wallet(args.address, args.limit)
         
         if df.empty:
             print("[!] No data. Exiting.")
@@ -975,14 +1287,17 @@ Examples:
         sleep = detect_sleep_window(hourly_counts)
         probs = calculate_probabilities(df, hourly_counts, daily_counts, sleep)
         
-        print_profile_report(df, args.address, probs, sleep)
+        # Analyze reaction speed for bot detection (reuse already-fetched data)
+        reaction = analyze_reaction_speed(args.address, tx_details_list)
+        
+        print_profile_report(df, args.address, probs, sleep, reaction)
         
         csv_path = f"gator_profile_{args.address[:8]}.csv"
         df.to_csv(csv_path, index=False)
         print(f"[+] Data saved: {csv_path}")
         
         if not args.no_plot:
-            fig = visualize_profile(df, args.address, probs, sleep)
+            fig = visualize_profile(df, args.address, probs, sleep, reaction)
             if args.save:
                 fig.savefig(args.save, dpi=150, facecolor='#0a0a0a', bbox_inches='tight')
                 print(f"[+] Plot saved: {args.save}")
