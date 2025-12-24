@@ -36,6 +36,12 @@ from typing import Optional, List, Dict, Tuple
 
 ETHERSCAN_API_KEY = "D4BP9GF8BKTTDIAP442ZY2V3N6UN7GC1UM"
 
+# Configure stdout encoding for Windows compatibility
+import sys
+import io
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+
 # Etherscan API V2 - Unified endpoint for all chains
 API_V2_BASE_URL = "https://api.etherscan.io/v2/api"
 

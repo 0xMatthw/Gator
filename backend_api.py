@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from typing import Optional
 import sys
 import os
+import traceback
 
 # Import Gator functions
 from gator_solana import (
@@ -19,10 +20,24 @@ from gator_solana import (
     analyze_execution_profile,
     fetch_transaction,
     fetch_signatures,
-    analyze_wallet,
-    detect_sleep_window,
-    calculate_probabilities
+    analyze_wallet as analyze_wallet_solana,
+    detect_sleep_window as detect_sleep_window_solana,
+    calculate_probabilities as calculate_probabilities_solana,
+    analyze_reaction_speed as analyze_reaction_speed_solana
 )
+
+# Import EVM functions
+try:
+    from gator_evm import (
+        analyze_wallet as analyze_wallet_evm,
+        detect_sleep_window as detect_sleep_window_evm,
+        calculate_probabilities as calculate_probabilities_evm,
+        analyze_reaction_speed as analyze_reaction_speed_evm
+    )
+    EVM_SUPPORTED = True
+except ImportError:
+    EVM_SUPPORTED = False
+    print("[!] Warning: EVM support not available (gator_evm.py not found)")
 
 app = FastAPI(title="Gator OSINT API", version="1.0.0")
 
@@ -57,6 +72,7 @@ class MempoolForensicsRequest(BaseModel):
 class WalletAnalysisRequest(BaseModel):
     wallet: str
     limit: Optional[int] = 200
+    chain: Optional[str] = "solana"  # solana, ethereum, base, arbitrum, optimism, polygon
 
 
 class TransactionAnalysisRequest(BaseModel):
@@ -103,11 +119,27 @@ def analyze_transaction(request: TransactionAnalysisRequest):
 @app.post("/analyze-wallet")
 def analyze_wallet_comprehensive(request: WalletAnalysisRequest):
     """
-    Comprehensive wallet analysis - fetches ALL transactions and provides complete profile.
+    Comprehensive wallet analysis - supports Solana and EVM chains.
     """
     try:
-        # Fetch transactions based on user-specified limit
-        df = analyze_wallet(request.wallet, limit=request.limit)
+        chain = request.chain.lower()
+        
+        # Select the appropriate analysis functions based on chain
+        if chain == "solana":
+            df, tx_details_list = analyze_wallet_solana(request.wallet, limit=request.limit)
+            detect_sleep = detect_sleep_window_solana
+            calc_probs = calculate_probabilities_solana
+            analyze_reaction = analyze_reaction_speed_solana
+            compute_unit_field = "compute_units"
+        else:
+            # EVM chains
+            if not EVM_SUPPORTED:
+                raise HTTPException(status_code=501, detail="EVM support not available")
+            df, tx_details_list = analyze_wallet_evm(request.wallet, chain=chain, limit=request.limit)
+            detect_sleep = detect_sleep_window_evm
+            calc_probs = calculate_probabilities_evm
+            analyze_reaction = analyze_reaction_speed_evm
+            compute_unit_field = "gas_used"  # EVM uses gas instead of compute units
         
         if df.empty:
             raise HTTPException(status_code=404, detail="No transactions found for this wallet")
@@ -120,47 +152,69 @@ def analyze_wallet_comprehensive(request: WalletAnalysisRequest):
             daily_counts[row["day_of_week"]] += 1
         
         # Detect sleep window
-        sleep = detect_sleep_window(hourly_counts)
+        sleep = detect_sleep(hourly_counts)
+        
+        # Analyze reaction speed for bot detection
+        reaction = analyze_reaction(request.wallet, tx_details_list)
         
         # Calculate probabilities
-        probs = calculate_probabilities(df, hourly_counts, daily_counts, sleep)
+        probs = calc_probs(df, hourly_counts, daily_counts, sleep)
         
-        # Analyze execution profiles
-        mempool_data = analyze_wallet_execution_profiles(request.wallet, limit=100)
+        # Analyze execution profiles (Solana only for now)
+        mempool_data = {}
+        if chain == "solana":
+            mempool_data = analyze_wallet_execution_profiles(request.wallet, limit=100)
         
         # Prepare transaction complexity data
         complexity_data = []
         for _, row in df.iterrows():
-            cu = row["compute_units"]
-            if cu > 300000:
-                tx_type = "Complex"
-            elif cu > 150000:
-                tx_type = "Jito Bundle"
+            # Use appropriate complexity metric based on chain
+            complexity_value = row.get(compute_unit_field, 0)
+            
+            if chain == "solana":
+                # Solana compute units
+                if complexity_value > 300000:
+                    tx_type = "Complex"
+                elif complexity_value > 150000:
+                    tx_type = "Jito Bundle"
+                else:
+                    tx_type = "Standard"
             else:
-                tx_type = "Standard"
+                # EVM gas
+                if complexity_value > 300000:
+                    tx_type = "Heavy"
+                elif complexity_value > 150000:
+                    tx_type = "Complex"
+                elif complexity_value > 65000:
+                    tx_type = "Moderate"
+                else:
+                    tx_type = "Simple"
             
             complexity_data.append({
                 "hour": int(row["hour"]),
-                "compute_units": int(cu),
+                compute_unit_field: int(complexity_value),
                 "type": tx_type
             })
         
         # Calculate risk assessment
         total_tx = len(df)
         fail_rate = (~df["success"]).sum() / total_tx if total_tx > 0 else 0
-        high_cu_ratio = (df["compute_units"] > 200000).sum() / total_tx if total_tx > 0 else 0
         
-        low_risk_count = ((fail_rate < 0.05) and (high_cu_ratio < 0.1))
-        medium_risk_count = ((fail_rate >= 0.05 and fail_rate < 0.2) or (high_cu_ratio >= 0.1 and high_cu_ratio < 0.3))
-        high_risk_count = ((fail_rate >= 0.2) or (high_cu_ratio >= 0.3))
+        # Use appropriate high complexity threshold based on chain
+        high_complexity_threshold = 200000 if chain == "solana" else 300000
+        high_complexity_ratio = (df[compute_unit_field] > high_complexity_threshold).sum() / total_tx if total_tx > 0 else 0
+        
+        low_risk_count = ((fail_rate < 0.05) and (high_complexity_ratio < 0.1))
+        medium_risk_count = ((fail_rate >= 0.05 and fail_rate < 0.2) or (high_complexity_ratio >= 0.1 and high_complexity_ratio < 0.3))
+        high_risk_count = ((fail_rate >= 0.2) or (high_complexity_ratio >= 0.3))
         
         # Determine risk level
         if high_risk_count:
             risk_level = "High Risk"
-            risk_score = min(100, int(fail_rate * 100 + high_cu_ratio * 100))
+            risk_score = min(100, int(fail_rate * 100 + high_complexity_ratio * 100))
         elif medium_risk_count:
             risk_level = "Medium Risk"
-            risk_score = min(60, int(fail_rate * 100 + high_cu_ratio * 50))
+            risk_score = min(60, int(fail_rate * 100 + high_complexity_ratio * 50))
         else:
             risk_level = "Low Risk"
             risk_score = min(30, int(fail_rate * 50))
@@ -186,11 +240,21 @@ def analyze_wallet_comprehensive(request: WalletAnalysisRequest):
         else:
             insights.append("Weekend activity suggests retail/hobbyist trader")
         
+        # Add reaction speed insight
+        if reaction.total_reaction_pairs > 0:
+            if reaction.bot_confidence > 70:
+                insights.append(f"⚡ {reaction.bot_confidence:.0f}% bot confidence - {reaction.instant_reactions} instant reactions detected (<5s)")
+            elif reaction.bot_confidence > 40:
+                insights.append(f"⚡ Moderate automation detected - avg reaction time {reaction.avg_reaction_time:.1f}s")
+            else:
+                insights.append(f"⚡ Human-like reaction patterns - avg response time {reaction.avg_reaction_time:.1f}s")
+        
         # Determine confidence level
         confidence = "High" if total_tx > 100 else "Medium" if total_tx > 50 else "Low"
         
         return {
             "wallet": request.wallet,
+            "chain": chain,
             "total_transactions": total_tx,
             "confidence": confidence,
             "activity_pattern": {
@@ -224,14 +288,32 @@ def analyze_wallet_comprehensive(request: WalletAnalysisRequest):
                 "high_risk": 2 if high_risk_count else 0
             },
             "key_insights": insights,
-            "mempool_forensics": mempool_data,
+            "mempool_forensics": mempool_data if chain == "solana" else {"note": "Mempool forensics only available for Solana"},
             "sleep_window": {
                 "start_hour": sleep.start_hour,
                 "end_hour": sleep.end_hour,
                 "confidence": round(sleep.confidence, 2)
+            },
+            "reaction_speed": {
+                "bot_confidence": round(reaction.bot_confidence, 2),
+                "avg_reaction_time": round(reaction.avg_reaction_time, 2),
+                "median_reaction_time": round(reaction.median_reaction_time, 2),
+                "fastest_reaction": round(reaction.fastest_reaction, 2),
+                "instant_reactions": reaction.instant_reactions,
+                "fast_reactions": reaction.fast_reactions,
+                "human_reactions": reaction.human_reactions,
+                "total_pairs": reaction.total_reaction_pairs
             }
         }
+    except HTTPException:
+        raise
     except Exception as e:
+        # Print full traceback for debugging
+        print("\n" + "="*60)
+        print("ERROR IN /analyze-wallet:")
+        print("="*60)
+        traceback.print_exc()
+        print("="*60 + "\n")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 

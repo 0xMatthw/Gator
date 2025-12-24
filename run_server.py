@@ -9,7 +9,7 @@ import os
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("🐊 Gator OSINT Backend Server")
+    print("Gator OSINT Backend Server")
     print("=" * 60)
     print("\nStarting server...")
     print("Frontend will be available at: http://localhost:8000")

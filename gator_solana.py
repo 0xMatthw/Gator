@@ -41,6 +41,12 @@ import json
 RPC_URL = "https://mainnet.helius-rpc.com/?api-key=d79d34cb-620d-419c-9d39-c57b3c25a099"
 DEFAULT_LIMIT = 100
 
+# Configure stdout encoding for Windows compatibility
+import sys
+import io
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+
 # Known labels for common addresses
 KNOWN_LABELS = {
     "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8": "Raydium LP V4",

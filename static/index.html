@@ -678,6 +678,52 @@
             color: #ef4444;
         }
 
+        /* Chain Selector */
+        .chain-selector {
+            margin-top: 30px;
+        }
+
+        .chain-btn {
+            padding: 12px 24px;
+            background: rgba(30, 30, 30, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e5e7eb;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .chain-btn svg {
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .chain-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .chain-btn:hover svg {
+            opacity: 1;
+        }
+
+        .chain-btn.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.15));
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .chain-btn.active svg {
+            opacity: 1;
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .grid {
@@ -759,9 +805,65 @@
                 </div>
             </div>
 
+            <div class="chain-selector">
+                <label style="font-size: 14px; color: #9ca3af; margin-bottom: 8px; display: block;">Blockchain Network:</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                    <button class="chain-btn active" data-chain="solana" onclick="selectChain('solana')">
+                        <svg width="20" height="20" viewBox="0 0 397 311" style="margin-right: 6px;">
+                            <linearGradient id="solanaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00FFA3;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#DC1FFF;stop-opacity:1" />
+                            </linearGradient>
+                            <path fill="url(#solanaGrad)" d="M64.6 237.9c2.4-2.4 5.7-3.8 9.2-3.8h317.4c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1l62.7-62.7z"/>
+                            <path fill="url(#solanaGrad)" d="M64.6 3.8C67.1 1.4 70.4 0 73.8 0h317.4c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1L64.6 3.8z"/>
+                            <path fill="url(#solanaGrad)" d="M333.1 120.1c-2.4-2.4-5.7-3.8-9.2-3.8H6.5c-5.8 0-8.7 7-4.6 11.1l62.7 62.7c2.4 2.4 5.7 3.8 9.2 3.8h317.4c5.8 0 8.7-7 4.6-11.1l-62.7-62.7z"/>
+                        </svg>
+                        <span>Solana</span>
+                    </button>
+                    <button class="chain-btn" data-chain="ethereum" onclick="selectChain('ethereum')">
+                        <svg width="20" height="20" viewBox="0 0 256 417" style="margin-right: 6px;">
+                            <path fill="#627EEA" d="M127.961 0l-2.795 9.5v275.668l2.795 2.79 127.962-75.638z"/>
+                            <path fill="#8A92B2" d="M127.962 0L0 212.32l127.962 75.639V154.158z"/>
+                            <path fill="#627EEA" d="M127.961 312.187l-1.575 1.92v98.199l1.575 4.6L256 236.587z"/>
+                            <path fill="#8A92B2" d="M127.962 416.905v-104.72L0 236.585z"/>
+                        </svg>
+                        <span>Ethereum</span>
+                    </button>
+                    <button class="chain-btn" data-chain="base" onclick="selectChain('base')">
+                        <svg width="20" height="20" viewBox="0 0 111 111" style="margin-right: 6px;">
+                            <circle cx="55.5" cy="55.5" r="55.5" fill="#0052FF"/>
+                            <path d="M55.5 102C81.18 102 102 81.18 102 55.5S81.18 9 55.5 9 9 29.82 9 55.5 29.82 102 55.5 102z" fill="#0052FF"/>
+                            <path d="M55.5 102C81.18 102 102 81.18 102 55.5h-46.5V9C29.82 9 9 29.82 9 55.5S29.82 102 55.5 102z" fill="#fff"/>
+                        </svg>
+                        <span>Base</span>
+                    </button>
+                    <button class="chain-btn" data-chain="arbitrum" onclick="selectChain('arbitrum')">
+                        <svg width="20" height="20" viewBox="0 0 16 16" style="margin-right: 6px;">
+                            <path fill="#28A0F0" d="M8 0L0 8l8 8 8-8-8-8zm3.5 10.5l-1.3 2.1-2.2-3.6-2.2 3.6-1.3-2.1L8 5.9l3.5 4.6z"/>
+                            <path fill="#96BEDC" d="M8 5.9l-3.5 4.6 1.3 2.1 2.2-3.6 2.2 3.6 1.3-2.1L8 5.9z"/>
+                        </svg>
+                        <span>Arbitrum</span>
+                    </button>
+                    <button class="chain-btn" data-chain="optimism" onclick="selectChain('optimism')">
+                        <svg width="20" height="20" viewBox="0 0 500 500" style="margin-right: 6px;">
+                            <circle cx="250" cy="250" r="250" fill="#FF0420"/>
+                            <path fill="#FFF" d="M177.133 316.446c-10.878 0-19.726-3.903-26.533-11.71-6.798-7.804-10.203-18.34-10.203-31.594 0-13.949 3.405-24.83 10.203-32.637 6.807-7.804 15.655-11.71 26.533-11.71 10.86 0 19.699 3.906 26.524 11.71 6.816 7.807 10.221 18.688 10.221 32.637 0 13.254-3.405 23.79-10.203 31.594-6.807 7.807-15.664 11.71-26.542 11.71zm0-17.89c5.23 0 9.239-2.084 12.01-6.256 2.772-4.171 4.163-10.103 4.163-17.799 0-8.091-1.391-14.232-4.163-18.423-2.771-4.19-6.78-6.288-12.01-6.288-5.248 0-9.266 2.098-12.057 6.288-2.791 4.19-4.18 10.332-4.18 18.423 0 7.696 1.389 13.628 4.18 17.799 2.79 4.172 6.809 6.256 12.057 6.256z"/>
+                            <path fill="#FFF" d="M259.067 275.073h-24.692v13.552c0 5.616 2.345 8.425 7.035 8.425 2.59 0 5.085-.501 7.476-1.494v16.288c-3.207 1.385-7.018 2.073-11.423 2.073-6.054 0-10.83-1.634-14.327-4.896-3.498-3.27-5.25-8.03-5.25-14.288v-19.66h-9.816v-16.288h9.816v-13.151l20.668-6.218v19.37h24.692v16.287z"/>
+                        </svg>
+                        <span>Optimism</span>
+                    </button>
+                    <button class="chain-btn" data-chain="polygon" onclick="selectChain('polygon')">
+                        <svg width="20" height="20" viewBox="0 0 38 33" style="margin-right: 6px;">
+                            <path fill="#8247E5" d="M29 10.2c-.7-.4-1.6-.4-2.4 0L21 13.5l-3.8 2.1-5.5 3.3c-.7.4-1.6.4-2.4 0L5 16.3c-.7-.4-1.2-1.2-1.2-2.1v-5c0-.8.4-1.6 1.2-2.1l4.3-2.5c.7-.4 1.6-.4 2.4 0L16 7.2c.7.4 1.2 1.2 1.2 2.1v3.3l3.8-2.2V7c0-.8-.4-1.6-1.2-2.1l-8-4.7c-.7-.4-1.6-.4-2.4 0L1.2 5C.4 5.4 0 6.2 0 7v9.4c0 .8.4 1.6 1.2 2.1l8.1 4.7c.7.4 1.6.4 2.4 0l5.5-3.2 3.8-2.2 5.5-3.2c.7-.4 1.6-.4 2.4 0l4.3 2.5c.7.4 1.2 1.2 1.2 2.1v5c0 .8-.4 1.6-1.2 2.1L29 28.8c-.7.4-1.6.4-2.4 0l-4.3-2.5c-.7-.4-1.2-1.2-1.2-2.1V21l-3.8 2.2v3.3c0 .8.4 1.6 1.2 2.1l8.1 4.7c.7.4 1.6.4 2.4 0l8.1-4.7c.7-.4 1.2-1.2 1.2-2.1V17c0-.8-.4-1.6-1.2-2.1L29 10.2z"/>
+                        </svg>
+                        <span>Polygon</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="disclaimer">
-                <span>ℹ️</span>
-                <span>Analysis is based on public blockchain data. Results are probabilistic behavioral inferences.</span>
+                <span style="opacity: 0.6;">ℹ️</span>
+                <span style="font-size: 13px; color: #9ca3af;">Analysis is based on public blockchain data. Results are probabilistic behavioral inferences. For best results, analyze wallets with 100+ transactions.</span>
             </div>
         </div>
 
@@ -790,6 +892,13 @@
                             <div class="stat-value" id="tx-count-display">0</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Low Transaction Count Warning (Hidden by default) -->
+            <div id="low-tx-warning" style="display: none; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 30px;">
+                <div style="font-size: 13px; color: #a5b4fc; line-height: 1.6;">
+                    <span style="opacity: 0.7;">📊</span> Limited data available (<span id="low-tx-threshold">50</span> transactions). Analysis confidence may be reduced with smaller sample sizes.
                 </div>
             </div>
 
@@ -978,7 +1087,43 @@
                     </div>
                 </div>
 
-                <!-- Key Insights -->
+                <!-- Reaction Speed Analysis -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">⚡</span>
+                        <span class="card-title">Reaction Speed Analysis</span>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="metric-row">
+                            <span class="metric-label">Bot Confidence</span>
+                            <span class="metric-value highlight" id="bot-confidence" style="font-size: 24px; font-weight: 700;">--%</span>
+                        </div>
+                        <div class="metric-row" style="margin-top: 15px;">
+                            <span class="metric-label">Instant Reactions (&lt;5s)</span>
+                            <span class="metric-value" id="instant-reactions" style="color: #ef4444;">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Fast Reactions (5-30s)</span>
+                            <span class="metric-value" id="fast-reactions" style="color: #f59e0b;">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Human Reactions (&gt;30s)</span>
+                            <span class="metric-value" id="human-reactions" style="color: #10b981;">--</span>
+                        </div>
+                        <div class="metric-row" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <span class="metric-label">Avg Reaction Time</span>
+                            <span class="metric-value" id="avg-reaction-time">--s</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Fastest Reaction</span>
+                            <span class="metric-value" id="fastest-reaction">--s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Insights (Full Width) -->
+            <div class="grid single">
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">💡</span>
@@ -1004,6 +1149,24 @@
     <script>
         const API_BASE = 'http://localhost:8000';
         let charts = {};
+        let selectedChain = 'solana';  // Default chain
+
+        function selectChain(chain) {
+            selectedChain = chain;
+            // Update button states
+            document.querySelectorAll('.chain-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-chain="${chain}"]`).classList.add('active');
+            
+            // Update placeholder based on chain
+            const input = document.getElementById('wallet-input');
+            if (chain === 'solana') {
+                input.placeholder = '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1';
+            } else {
+                input.placeholder = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb';
+            }
+        }
 
         async function analyzeWallet() {
             const wallet = document.getElementById('wallet-input').value.trim();
@@ -1026,7 +1189,7 @@
                 const response = await fetch(`${API_BASE}/analyze-wallet`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ wallet, limit })
+                    body: JSON.stringify({ wallet, limit, chain: selectedChain })
                 });
 
                 if (!response.ok) {
@@ -1044,6 +1207,7 @@
 
             } catch (error) {
                 alert(`Error: ${error.message}`);
+                console.error('Analysis error:', error);
             } finally {
                 document.getElementById('loading').classList.remove('show');
                 document.getElementById('analyze-btn').disabled = false;
@@ -1057,10 +1221,39 @@
             document.getElementById('confidence-display').textContent = data.confidence;
             document.getElementById('tx-count-display').textContent = data.total_transactions.toLocaleString();
 
+            // Show/hide low transaction warning
+            const lowTxWarning = document.getElementById('low-tx-warning');
+            const lowTxThreshold = document.getElementById('low-tx-threshold');
+            if (data.total_transactions < 50) {
+                lowTxThreshold.textContent = data.total_transactions;
+                lowTxWarning.style.display = 'block';
+            } else {
+                lowTxWarning.style.display = 'none';
+            }
+
             // Update sleep window info
             document.getElementById('sleep-hours').textContent = 
                 `${String(data.sleep_window.start_hour).padStart(2, '0')}:00 to ${String(data.sleep_window.end_hour).padStart(2, '0')}:00`;
             document.getElementById('sleep-confidence').textContent = data.sleep_window.confidence.toFixed(1) + '%';
+
+            // Update reaction speed analysis
+            if (data.reaction_speed && data.reaction_speed.total_pairs > 0) {
+                const botConf = data.reaction_speed.bot_confidence;
+                document.getElementById('bot-confidence').textContent = botConf.toFixed(0) + '%';
+                document.getElementById('bot-confidence').style.color = botConf > 70 ? '#ef4444' : botConf > 40 ? '#f59e0b' : '#10b981';
+                document.getElementById('instant-reactions').textContent = data.reaction_speed.instant_reactions;
+                document.getElementById('fast-reactions').textContent = data.reaction_speed.fast_reactions;
+                document.getElementById('human-reactions').textContent = data.reaction_speed.human_reactions;
+                document.getElementById('avg-reaction-time').textContent = data.reaction_speed.avg_reaction_time.toFixed(1) + 's';
+                document.getElementById('fastest-reaction').textContent = data.reaction_speed.fastest_reaction.toFixed(2) + 's';
+            } else {
+                document.getElementById('bot-confidence').textContent = 'N/A';
+                document.getElementById('instant-reactions').textContent = '0';
+                document.getElementById('fast-reactions').textContent = '0';
+                document.getElementById('human-reactions').textContent = '0';
+                document.getElementById('avg-reaction-time').textContent = 'N/A';
+                document.getElementById('fastest-reaction').textContent = 'N/A';
+            }
 
             // Update geographic data
             const geoData = data.geographic_origin;
@@ -1098,17 +1291,35 @@
             document.getElementById('trader-inst').textContent = traderData.institutional.toFixed(1) + '%';
 
             // Update complexity data
-            const avgCU = data.transaction_complexity.reduce((sum, tx) => sum + tx.compute_units, 0) / data.transaction_complexity.length;
-            document.getElementById('avg-complexity').textContent = avgCU.toFixed(0).toLocaleString() + ' CU';
+            // Handle both Solana (compute_units) and EVM (gas_used)
+            const complexityField = data.chain === 'solana' ? 'compute_units' : 'gas_used';
+            const complexityUnit = data.chain === 'solana' ? ' CU' : ' Gas';
             
-            // Determine complexity rating
+            const avgComplexity = data.transaction_complexity.reduce((sum, tx) => {
+                return sum + (tx.compute_units || tx.gas_used || 0);
+            }, 0) / data.transaction_complexity.length;
+            
+            document.getElementById('avg-complexity').textContent = avgComplexity.toFixed(0).toLocaleString() + complexityUnit;
+            
+            // Determine complexity rating based on chain
             let complexityRating = 'Low';
-            if (avgCU > 500000) {
-                complexityRating = 'Very High (Bot-like)';
-            } else if (avgCU > 200000) {
-                complexityRating = 'High (Advanced)';
-            } else if (avgCU > 50000) {
-                complexityRating = 'Moderate (Standard)';
+            if (data.chain === 'solana') {
+                if (avgComplexity > 500000) {
+                    complexityRating = 'Very High (Bot-like)';
+                } else if (avgComplexity > 200000) {
+                    complexityRating = 'High (Advanced)';
+                } else if (avgComplexity > 50000) {
+                    complexityRating = 'Moderate (Standard)';
+                }
+            } else {
+                // EVM chains
+                if (avgComplexity > 500000) {
+                    complexityRating = 'Very High (Bot-like)';
+                } else if (avgComplexity > 300000) {
+                    complexityRating = 'High (Advanced)';
+                } else if (avgComplexity > 150000) {
+                    complexityRating = 'Moderate (Standard)';
+                }
             }
             document.getElementById('complexity-rating').textContent = complexityRating;
 
@@ -1116,7 +1327,7 @@
             const profiles = data.profile_classification;
             const failRate = ((data.total_transactions - data.activity_pattern.hourly.reduce((a, b) => a + b, 0)) / data.total_transactions * 100) || 0;
             
-            document.getElementById('behavior-complexity').textContent = avgCU.toFixed(0).toLocaleString() + ' CU';
+            document.getElementById('behavior-complexity').textContent = avgComplexity.toFixed(0).toLocaleString() + complexityUnit;
             document.getElementById('behavior-fail-rate').textContent = failRate.toFixed(1) + '%';
             
             // Determine primary profile type
@@ -1247,11 +1458,13 @@
             // Behavioral Complexity Chart
             const complexityData = data.transaction_complexity;
             
-            // Categorize by compute units
-            const simpleData = complexityData.filter(t => t.compute_units < 50000).map(t => ({ x: t.hour, y: t.compute_units }));
-            const moderateData = complexityData.filter(t => t.compute_units >= 50000 && t.compute_units < 200000).map(t => ({ x: t.hour, y: t.compute_units }));
-            const complexData = complexityData.filter(t => t.compute_units >= 200000 && t.compute_units < 500000).map(t => ({ x: t.hour, y: t.compute_units }));
-            const heavyData = complexityData.filter(t => t.compute_units >= 500000).map(t => ({ x: t.hour, y: t.compute_units }));
+            // Categorize by complexity (handle both compute_units and gas_used)
+            const getComplexityValue = (t) => t.compute_units || t.gas_used || 0;
+            
+            const simpleData = complexityData.filter(t => getComplexityValue(t) < 50000).map(t => ({ x: t.hour, y: getComplexityValue(t) }));
+            const moderateData = complexityData.filter(t => getComplexityValue(t) >= 50000 && getComplexityValue(t) < 200000).map(t => ({ x: t.hour, y: getComplexityValue(t) }));
+            const complexData = complexityData.filter(t => getComplexityValue(t) >= 200000 && getComplexityValue(t) < 500000).map(t => ({ x: t.hour, y: getComplexityValue(t) }));
+            const heavyData = complexityData.filter(t => getComplexityValue(t) >= 500000).map(t => ({ x: t.hour, y: getComplexityValue(t) }));
             
             charts.complexity = new Chart(document.getElementById('complexity-chart'), {
                 type: 'scatter',
