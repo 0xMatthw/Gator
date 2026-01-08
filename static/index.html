@@ -311,6 +311,41 @@
             animation: spin 1s linear infinite;
         }
 
+        .progress-container {
+            max-width: 500px;
+            margin: 30px auto 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        #loading-stage {
+            font-size: 15px;
+            font-weight: 500;
+            color: #e5e7eb;
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -1191,7 +1226,16 @@
         <!-- Loading -->
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Analyzing blockchain transactions...</p>
+            <p id="loading-stage">Initializing analysis...</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progress-percent">0%</span>
+                    <span id="progress-eta"></span>
+                </div>
+            </div>
         </div>
 
         <!-- Results -->
@@ -1496,6 +1540,9 @@
             }
         }
 
+        let progressInterval = null;
+        let startTime = null;
+
         async function analyzeWallet() {
             const wallet = document.getElementById('wallet-input').value.trim();
             const limit = parseInt(document.getElementById('tx-limit-input').value) || 200;
@@ -1505,10 +1552,17 @@
                 return;
             }
 
-            // Show loading
+            // Reset and show loading
             document.getElementById('loading').classList.add('show');
             document.getElementById('results').classList.remove('show');
             document.getElementById('analyze-btn').disabled = true;
+            
+            // Initialize progress
+            updateProgress(0, 'Initializing analysis...');
+            startTime = Date.now();
+
+            // Start progress simulation
+            startProgressTracking();
 
             // Scroll to loading
             document.getElementById('loading').scrollIntoView({ behavior: 'smooth' });
@@ -1526,6 +1580,11 @@
                 }
 
                 const data = await response.json();
+                
+                // Complete progress
+                updateProgress(100, 'Analysis complete!');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
                 displayResults(data);
 
                 // Scroll to results
@@ -1537,8 +1596,70 @@
                 alert(`Error: ${error.message}`);
                 console.error('Analysis error:', error);
             } finally {
+                stopProgressTracking();
                 document.getElementById('loading').classList.remove('show');
                 document.getElementById('analyze-btn').disabled = false;
+            }
+        }
+
+        function startProgressTracking() {
+            let progress = 0;
+            let stage = 0;
+            
+            const stages = [
+                { percent: 15, duration: 2000, text: 'Fetching transactions from blockchain...' },
+                { percent: 40, duration: 5000, text: 'Analyzing transaction patterns...' },
+                { percent: 65, duration: 4000, text: 'Detecting bot behavior & reaction speeds...' },
+                { percent: 85, duration: 3000, text: 'Calculating circadian rhythm...' },
+                { percent: 95, duration: 2000, text: 'Finalizing profile...' }
+            ];
+
+            let currentStage = stages[0];
+            let stageStartTime = Date.now();
+            let stageStartPercent = 0;
+
+            updateProgress(0, currentStage.text);
+
+            progressInterval = setInterval(() => {
+                const elapsed = Date.now() - stageStartTime;
+                const stageProgress = Math.min(elapsed / currentStage.duration, 1);
+                
+                // Calculate smooth progress within current stage
+                progress = stageStartPercent + (currentStage.percent - stageStartPercent) * stageProgress;
+                
+                // Update ETA
+                const totalElapsed = Date.now() - startTime;
+                const estimatedTotal = totalElapsed / (progress / 100);
+                const remaining = Math.max(0, (estimatedTotal - totalElapsed) / 1000);
+                
+                updateProgress(Math.floor(progress), currentStage.text, remaining);
+
+                // Move to next stage
+                if (stageProgress >= 1 && stage < stages.length - 1) {
+                    stage++;
+                    stageStartPercent = progress;
+                    currentStage = stages[stage];
+                    stageStartTime = Date.now();
+                }
+            }, 100);
+        }
+
+        function stopProgressTracking() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+        }
+
+        function updateProgress(percent, stage, eta = null) {
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('loading-stage').textContent = stage;
+            
+            if (eta !== null && eta > 0) {
+                document.getElementById('progress-eta').textContent = `~${Math.ceil(eta)}s remaining`;
+            } else {
+                document.getElementById('progress-eta').textContent = '';
             }
         }
 
