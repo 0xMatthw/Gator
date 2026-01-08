@@ -2,6 +2,8 @@
 
 **Behavioral profiling for blockchain wallets.** Analyze who's behind a wallet using time patterns, gas behavior, reaction speeds, and transaction complexity.
 
+---
+
 Supports **Solana** and **EVM chains** (Ethereum, Base, Arbitrum, etc.)
 
 ---
