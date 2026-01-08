@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/main.py"
+    }
+  ],
+  "env": {
+    "HELIUS_API_KEY": "@helius_api_key",
+    "ETHERSCAN_API_KEY": "@etherscan_api_key"
+  }
+}
