@@ -492,6 +492,82 @@
             letter-spacing: 0.5px;
         }
 
+        /* Tooltip styles */
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-left: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            color: #3b82f6;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: help;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tooltip-icon:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            transform: scale(1.1);
+        }
+
+        .tooltip-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 16px;
+            background: rgba(30, 30, 30, 0.98);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: #e5e7eb;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.5;
+            white-space: normal;
+            width: 280px;
+            text-align: left;
+            text-transform: none;
+            letter-spacing: normal;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .tooltip-icon:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .tooltip-icon::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(30, 30, 30, 0.98);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 1001;
+        }
+
+        .tooltip-icon:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
         /* Chart Container */
         .chart-container {
             position: relative;
@@ -1280,7 +1356,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">🕒</span>
-                        <span class="card-title">Circadian Rhythm</span>
+                        <span class="card-title">Circadian Rhythm
+                            <span class="tooltip-icon" data-tooltip="Shows hourly transaction patterns to detect sleep windows and identify timezone. Gaps of 4-6 hours indicate human sleep patterns.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="activity-chart"></canvas>
@@ -1309,7 +1387,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">🌍</span>
-                        <span class="card-title">Geographic Probability</span>
+                        <span class="card-title">Geographic Probability
+                            <span class="tooltip-icon" data-tooltip="Estimates geographic location based on sleep window timing. Sleep at 02:00 UTC = Europe, 08:00 UTC = USA, 22:00 UTC = Asia.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="geographic-chart"></canvas>
@@ -1338,7 +1418,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">📅</span>
-                        <span class="card-title">Weekly Routine</span>
+                        <span class="card-title">Weekly Routine
+                            <span class="tooltip-icon" data-tooltip="Analyzes weekday vs weekend activity patterns. Higher weekend activity suggests retail/hobbyist traders, weekday focus indicates professionals.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="weekly-chart"></canvas>
@@ -1373,7 +1455,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">💼</span>
-                        <span class="card-title">Occupation Probability</span>
+                        <span class="card-title">Occupation Probability
+                            <span class="tooltip-icon" data-tooltip="Classifies trader type based on activity patterns and transaction timing. Professional = business hours, Retail = irregular patterns, Institutional = high volume.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="trader-chart"></canvas>
@@ -1400,7 +1484,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">⚡</span>
-                        <span class="card-title">Behavioral Complexity</span>
+                        <span class="card-title">Behavioral Complexity
+                            <span class="tooltip-icon" data-tooltip="Measures transaction complexity using compute units (Solana) or gas (EVM). High complexity during sleep hours suggests bot activity.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="complexity-chart"></canvas>
@@ -1440,7 +1526,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">🤖</span>
-                        <span class="card-title">Behavioral Profile</span>
+                        <span class="card-title">Behavioral Profile
+                            <span class="tooltip-icon" data-tooltip="Overall behavioral classification combining bot likelihood, whale probability, and risk indicators based on all analyzed patterns.">?</span>
+                        </span>
                     </div>
                     <div id="behavioral-bars"></div>
                     <div class="chart-legend" style="margin-top: 20px;">
@@ -1463,7 +1551,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">⚡</span>
-                        <span class="card-title">Reaction Speed Analysis</span>
+                        <span class="card-title">Reaction Speed Analysis
+                            <span class="tooltip-icon" data-tooltip="Bot detection based on reaction time between receiving tokens and taking action. Instant (<5s) = Bot, Fast (5-30s) = Likely Bot, Human (>30s) = Normal.">?</span>
+                        </span>
                     </div>
                     <div class="chart-legend">
                         <div class="metric-row">
@@ -1499,7 +1589,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">💡</span>
-                        <span class="card-title">Key Insights</span>
+                        <span class="card-title">Key Insights
+                            <span class="tooltip-icon" data-tooltip="AI-generated summary of the most important behavioral patterns and anomalies detected in this wallet's activity.">?</span>
+                        </span>
                     </div>
                     <ul class="insights-list" id="insights-list"></ul>
                 </div>
@@ -1510,7 +1602,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">👤</span>
-                        <span class="card-title">Profile Classification</span>
+                        <span class="card-title">Profile Classification
+                            <span class="tooltip-icon" data-tooltip="Probability breakdown across different user types: Bot (automated), Institutional (high-volume), Whale (large holder), Airdrop Farmer, and Professional trader.">?</span>
+                        </span>
                     </div>
                     <div id="profile-classification"></div>
                 </div>
