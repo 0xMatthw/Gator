@@ -20,17 +20,18 @@ Get your API keys:
 - **Etherscan**: [etherscan.io/myapikey](https://etherscan.io/myapikey)
 - **Helius (Solana)**: [dev.helius.xyz](https://dev.helius.xyz/dashboard/app)
 
-Set environment variables:
+Create a `.env` file in the project root:
 
 ```bash
-# Mac/Linux
-export ETHERSCAN_API_KEY="your_key_here"
-export HELIUS_API_KEY="your_key_here"
+# Copy the example file
+cp .env.example .env
 
-# Windows (PowerShell)
-$env:ETHERSCAN_API_KEY="your_key_here"
-$env:HELIUS_API_KEY="your_key_here"
+# Edit .env and add your keys:
+HELIUS_API_KEY=your_helius_key_here
+ETHERSCAN_API_KEY=your_etherscan_key_here
 ```
+
+**Note**: The `.env` file is ignored by git to keep your keys secure.
 
 ### 3. Start the Server
 
