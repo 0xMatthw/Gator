@@ -54,24 +54,46 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 20px 0;
-            margin-bottom: 40px;
+            padding: 30px 0;
+            margin-bottom: 50px;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
 
         .logo-icon {
-            font-size: 48px;
+            font-size: 72px;
+            filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.3));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .logo-text h1 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #10b981;
+            font-size: 56px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .logo-text .tagline {
+            font-size: 13px;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 2px;
         }
 
         .badge {
@@ -90,24 +112,48 @@
         .search-section {
             background: rgba(3, 3, 3, 0.99);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 60px 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 70px 50px;
             text-align: center;
             margin-bottom: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(59, 130, 246, 0.5) 25%,
+                rgba(16, 185, 129, 0.5) 50%,
+                rgba(139, 92, 246, 0.5) 75%,
+                transparent 100%);
         }
 
         .search-section h2 {
-            font-size: 28px;
+            font-size: 32px;
+            font-weight: 700;
             margin-bottom: 12px;
-            color: #f9fafb;
+            background: linear-gradient(135deg, #f9fafb 0%, #d1d5db 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .search-section p {
-            font-size: 15px;
+            font-size: 16px;
             color: #9ca3af;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+            font-weight: 400;
         }
 
         .search-box {
@@ -148,11 +194,13 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
         }
 
         .search-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.5);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         }
 
         .search-btn:disabled {
@@ -263,6 +311,41 @@
             animation: spin 1s linear infinite;
         }
 
+        .progress-container {
+            max-width: 500px;
+            margin: 30px auto 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        #loading-stage {
+            font-size: 15px;
+            font-weight: 500;
+            color: #e5e7eb;
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -286,6 +369,57 @@
             margin-bottom: 30px;
         }
 
+        /* Export Bar */
+        .export-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .export-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-right: 8px;
+        }
+
+        .export-btn {
+            padding: 10px 18px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: #3b82f6;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .export-btn:active {
+            transform: translateY(0);
+        }
+
+        .export-btn.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
         .wallet-header {
             display: flex;
             align-items: center;
@@ -303,6 +437,38 @@
             font-size: 18px;
             font-family: 'Courier New', monospace;
             color: #f9fafb;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .copy-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        .copy-btn.copied {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #10b981;
         }
 
         .wallet-stats {
@@ -375,6 +541,82 @@
             color: #f9fafb;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        /* Tooltip styles */
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-left: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            color: #3b82f6;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: help;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tooltip-icon:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            transform: scale(1.1);
+        }
+
+        .tooltip-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 16px;
+            background: rgba(30, 30, 30, 0.98);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: #e5e7eb;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.5;
+            white-space: normal;
+            width: 280px;
+            text-align: left;
+            text-transform: none;
+            letter-spacing: normal;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .tooltip-icon:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .tooltip-icon::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(30, 30, 30, 0.98);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 1001;
+        }
+
+        .tooltip-icon:hover::before {
+            opacity: 1;
+            visibility: visible;
         }
 
         /* Chart Container */
@@ -993,6 +1235,7 @@
                 <div class="logo-icon">🐊</div>
                 <div class="logo-text">
                     <h1>GATOR</h1>
+                    <div class="tagline">Blockchain Intelligence Platform</div>
                 </div>
             </div>
             <div class="badge">
@@ -1004,8 +1247,8 @@
 
         <!-- Search Section -->
         <div class="search-section">
-            <h2>Wallet Analysis</h2>
-            <p>Enter a blockchain wallet address to analyze behavioral patterns and risk indicators</p>
+            <h2>Behavioral Profiling & Side-Channel Analysis</h2>
+            <p>Advanced blockchain intelligence that reveals <strong>who</strong> is behind a wallet using behavioral patterns, reaction speeds, and transaction complexity</p>
             
             <div class="search-box">
                 <input 
@@ -1101,14 +1344,25 @@
 
             <div class="disclaimer">
                 <span style="opacity: 0.6;">ℹ️</span>
-                <span style="font-size: 13px; color: #9ca3af;">Analysis is based on public blockchain data. Results are probabilistic behavioral inferences. For best results, analyze wallets with 100+ transactions.</span>
+                <span style="font-size: 13px; color: #9ca3af;">
+                    Uses only public blockchain data. Detects timezone patterns, bot activity (reaction speed &lt;5s), and transaction complexity. Best results with 100+ transactions.
+                </span>
             </div>
         </div>
 
         <!-- Loading -->
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Analyzing blockchain transactions...</p>
+            <p id="loading-stage">Initializing analysis...</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progress-percent">0%</span>
+                    <span id="progress-eta"></span>
+                </div>
+            </div>
         </div>
 
         <!-- Results -->
@@ -1118,7 +1372,10 @@
                 <div class="wallet-header">
                     <div>
                         <div class="wallet-address">Wallet Address</div>
-                        <div class="wallet-id" id="wallet-display"></div>
+                        <div class="wallet-id">
+                            <span id="wallet-display"></span>
+                            <button class="copy-btn" id="copy-wallet-btn" onclick="copyWalletAddress()">📋 Copy</button>
+                        </div>
                     </div>
                     <div class="wallet-stats">
                         <div class="stat-box">
@@ -1135,6 +1392,23 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Export/Share Bar -->
+                <div class="export-bar">
+                    <span class="export-label">📤 Export/Share:</span>
+                    <button class="export-btn" onclick="exportAsJSON()">
+                        <span>📄</span>
+                        <span>JSON</span>
+                    </button>
+                    <button class="export-btn" onclick="exportAsText()">
+                        <span>📝</span>
+                        <span>Text Report</span>
+                    </button>
+                    <button class="export-btn" onclick="copyReportToClipboard()">
+                        <span>📋</span>
+                        <span>Copy Summary</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Low Transaction Count Warning (Hidden by default) -->
@@ -1150,7 +1424,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">🕒</span>
-                        <span class="card-title">Circadian Rhythm</span>
+                        <span class="card-title">Circadian Rhythm
+                            <span class="tooltip-icon" data-tooltip="Shows hourly transaction patterns to detect sleep windows and identify timezone. Gaps of 4-6 hours indicate human sleep patterns.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="activity-chart"></canvas>
@@ -1179,7 +1455,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">🌍</span>
-                        <span class="card-title">Geographic Probability</span>
+                        <span class="card-title">Geographic Probability
+                            <span class="tooltip-icon" data-tooltip="Estimates geographic location based on sleep window timing. Sleep at 02:00 UTC = Europe, 08:00 UTC = USA, 22:00 UTC = Asia.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="geographic-chart"></canvas>
@@ -1208,7 +1486,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">📅</span>
-                        <span class="card-title">Weekly Routine</span>
+                        <span class="card-title">Weekly Routine
+                            <span class="tooltip-icon" data-tooltip="Analyzes weekday vs weekend activity patterns. Higher weekend activity suggests retail/hobbyist traders, weekday focus indicates professionals.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="weekly-chart"></canvas>
@@ -1243,7 +1523,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">💼</span>
-                        <span class="card-title">Occupation Probability</span>
+                        <span class="card-title">Occupation Probability
+                            <span class="tooltip-icon" data-tooltip="Classifies trader type based on activity patterns and transaction timing. Professional = business hours, Retail = irregular patterns, Institutional = high volume.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="trader-chart"></canvas>
@@ -1270,7 +1552,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">⚡</span>
-                        <span class="card-title">Behavioral Complexity</span>
+                        <span class="card-title">Behavioral Complexity
+                            <span class="tooltip-icon" data-tooltip="Measures transaction complexity using compute units (Solana) or gas (EVM). High complexity during sleep hours suggests bot activity.">?</span>
+                        </span>
                     </div>
                     <div class="chart-container">
                         <canvas id="complexity-chart"></canvas>
@@ -1310,7 +1594,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">🤖</span>
-                        <span class="card-title">Behavioral Profile</span>
+                        <span class="card-title">Behavioral Profile
+                            <span class="tooltip-icon" data-tooltip="Overall behavioral classification combining bot likelihood, whale probability, and risk indicators based on all analyzed patterns.">?</span>
+                        </span>
                     </div>
                     <div id="behavioral-bars"></div>
                     <div class="chart-legend" style="margin-top: 20px;">
@@ -1333,7 +1619,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">⚡</span>
-                        <span class="card-title">Reaction Speed Analysis</span>
+                        <span class="card-title">Reaction Speed Analysis
+                            <span class="tooltip-icon" data-tooltip="Bot detection based on reaction time between receiving tokens and taking action. Instant (<5s) = Bot, Fast (5-30s) = Likely Bot, Human (>30s) = Normal.">?</span>
+                        </span>
                     </div>
                     <div class="chart-legend">
                         <div class="metric-row">
@@ -1369,7 +1657,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">💡</span>
-                        <span class="card-title">Key Insights</span>
+                        <span class="card-title">Key Insights
+                            <span class="tooltip-icon" data-tooltip="AI-generated summary of the most important behavioral patterns and anomalies detected in this wallet's activity.">?</span>
+                        </span>
                     </div>
                     <ul class="insights-list" id="insights-list"></ul>
                 </div>
@@ -1380,7 +1670,9 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-icon">👤</span>
-                        <span class="card-title">Profile Classification</span>
+                        <span class="card-title">Profile Classification
+                            <span class="tooltip-icon" data-tooltip="Probability breakdown across different user types: Bot (automated), Institutional (high-volume), Whale (large holder), Airdrop Farmer, and Professional trader.">?</span>
+                        </span>
                     </div>
                     <div id="profile-classification"></div>
                 </div>
@@ -1410,6 +1702,9 @@
             }
         }
 
+        let progressInterval = null;
+        let startTime = null;
+
         async function analyzeWallet() {
             const wallet = document.getElementById('wallet-input').value.trim();
             const limit = parseInt(document.getElementById('tx-limit-input').value) || 200;
@@ -1419,10 +1714,17 @@
                 return;
             }
 
-            // Show loading
+            // Reset and show loading
             document.getElementById('loading').classList.add('show');
             document.getElementById('results').classList.remove('show');
             document.getElementById('analyze-btn').disabled = true;
+            
+            // Initialize progress
+            updateProgress(0, 'Initializing analysis...');
+            startTime = Date.now();
+
+            // Start progress simulation
+            startProgressTracking();
 
             // Scroll to loading
             document.getElementById('loading').scrollIntoView({ behavior: 'smooth' });
@@ -1440,6 +1742,11 @@
                 }
 
                 const data = await response.json();
+                
+                // Complete progress
+                updateProgress(100, 'Analysis complete!');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
                 displayResults(data);
 
                 // Scroll to results
@@ -1451,12 +1758,269 @@
                 alert(`Error: ${error.message}`);
                 console.error('Analysis error:', error);
             } finally {
+                stopProgressTracking();
                 document.getElementById('loading').classList.remove('show');
                 document.getElementById('analyze-btn').disabled = false;
             }
         }
 
+        function startProgressTracking() {
+            let progress = 0;
+            let stage = 0;
+            
+            const stages = [
+                { percent: 15, duration: 2000, text: 'Fetching transactions from blockchain...' },
+                { percent: 40, duration: 5000, text: 'Analyzing transaction patterns...' },
+                { percent: 65, duration: 4000, text: 'Detecting bot behavior & reaction speeds...' },
+                { percent: 85, duration: 3000, text: 'Calculating circadian rhythm...' },
+                { percent: 95, duration: 2000, text: 'Finalizing profile...' }
+            ];
+
+            let currentStage = stages[0];
+            let stageStartTime = Date.now();
+            let stageStartPercent = 0;
+
+            updateProgress(0, currentStage.text);
+
+            progressInterval = setInterval(() => {
+                const elapsed = Date.now() - stageStartTime;
+                const stageProgress = Math.min(elapsed / currentStage.duration, 1);
+                
+                // Calculate smooth progress within current stage
+                progress = stageStartPercent + (currentStage.percent - stageStartPercent) * stageProgress;
+                
+                // Update ETA
+                const totalElapsed = Date.now() - startTime;
+                const estimatedTotal = totalElapsed / (progress / 100);
+                const remaining = Math.max(0, (estimatedTotal - totalElapsed) / 1000);
+                
+                updateProgress(Math.floor(progress), currentStage.text, remaining);
+
+                // Move to next stage
+                if (stageProgress >= 1 && stage < stages.length - 1) {
+                    stage++;
+                    stageStartPercent = progress;
+                    currentStage = stages[stage];
+                    stageStartTime = Date.now();
+                }
+            }, 100);
+        }
+
+        function stopProgressTracking() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+        }
+
+        function updateProgress(percent, stage, eta = null) {
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('loading-stage').textContent = stage;
+            
+            if (eta !== null && eta > 0) {
+                document.getElementById('progress-eta').textContent = `~${Math.ceil(eta)}s remaining`;
+            } else {
+                document.getElementById('progress-eta').textContent = '';
+            }
+        }
+
+        // Store full wallet address and analysis data for copying/exporting
+        let currentWalletAddress = '';
+        let currentAnalysisData = null;
+        let copyTimeout = null;
+
+        function copyWalletAddress() {
+            if (!currentWalletAddress) return;
+            
+            // Clear any existing timeout
+            if (copyTimeout) {
+                clearTimeout(copyTimeout);
+            }
+            
+            const btn = document.getElementById('copy-wallet-btn');
+            const originalText = '📋 Copy';
+            
+            navigator.clipboard.writeText(currentWalletAddress).then(() => {
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                
+                copyTimeout = setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                    copyTimeout = null;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+        // ===================================================================
+        // EXPORT/SHARE FUNCTIONS
+        // ===================================================================
+
+        function exportAsJSON() {
+            if (!currentAnalysisData) {
+                alert('No analysis data available to export');
+                return;
+            }
+
+            const jsonStr = JSON.stringify(currentAnalysisData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gator_analysis_${currentWalletAddress.substring(0, 8)}_${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showExportSuccess('JSON downloaded');
+        }
+
+        function exportAsText() {
+            if (!currentAnalysisData) {
+                alert('No analysis data available to export');
+                return;
+            }
+
+            const data = currentAnalysisData;
+            const report = `
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                          GATOR OSINT ANALYSIS REPORT                          ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+Wallet Address: ${data.wallet}
+Chain: ${data.chain.toUpperCase()}
+Analysis Date: ${new Date().toISOString()}
+Total Transactions: ${data.total_transactions}
+Confidence: ${data.confidence}
+
+═══════════════════════════════════════════════════════════════════════════════
+BEHAVIORAL PROFILE
+═══════════════════════════════════════════════════════════════════════════════
+
+Bot Probability:          ${data.profile_classification.bot.toFixed(1)}%
+Whale Probability:        ${data.profile_classification.whale.toFixed(1)}%
+Institutional:            ${data.profile_classification.institutional.toFixed(1)}%
+Professional:             ${data.profile_classification.professional.toFixed(1)}%
+Airdrop Farmer:           ${data.profile_classification.airdrop_farmer.toFixed(1)}%
+
+═══════════════════════════════════════════════════════════════════════════════
+REACTION SPEED ANALYSIS (Bot Detection)
+═══════════════════════════════════════════════════════════════════════════════
+
+Bot Confidence:           ${data.reaction_speed.bot_confidence.toFixed(0)}%
+Average Reaction Time:    ${data.reaction_speed.avg_reaction_time.toFixed(1)}s
+Fastest Reaction:         ${data.reaction_speed.fastest_reaction.toFixed(2)}s
+
+Instant Reactions (<5s):  ${data.reaction_speed.instant_reactions}
+Fast Reactions (5-30s):   ${data.reaction_speed.fast_reactions}
+Human Reactions (>30s):   ${data.reaction_speed.human_reactions}
+
+═══════════════════════════════════════════════════════════════════════════════
+SLEEP PATTERN & TIMEZONE
+═══════════════════════════════════════════════════════════════════════════════
+
+Sleep Window:             ${String(data.sleep_window.start_hour).padStart(2, '0')}:00 - ${String(data.sleep_window.end_hour).padStart(2, '0')}:00 UTC
+Sleep Confidence:         ${data.sleep_window.confidence.toFixed(1)}%
+
+Geographic Origin:
+  Asia/Pacific:           ${data.geographic_origin.asia_pacific.toFixed(1)}%
+  Europe:                 ${data.geographic_origin.europe.toFixed(1)}%
+  Americas:               ${data.geographic_origin.americas.toFixed(1)}%
+
+═══════════════════════════════════════════════════════════════════════════════
+KEY INSIGHTS
+═══════════════════════════════════════════════════════════════════════════════
+
+${data.key_insights.map((insight, i) => `${i + 1}. ${insight}`).join('\n')}
+
+═══════════════════════════════════════════════════════════════════════════════
+Generated by GATOR - Blockchain Intelligence Platform
+https://github.com/Tgcohce/Gator
+═══════════════════════════════════════════════════════════════════════════════
+`;
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gator_report_${currentWalletAddress.substring(0, 8)}_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showExportSuccess('Text report downloaded');
+        }
+
+        function copyReportToClipboard() {
+            if (!currentAnalysisData) {
+                alert('No analysis data available to copy');
+                return;
+            }
+
+            const data = currentAnalysisData;
+            const summary = `🐊 GATOR Analysis Summary
+
+Wallet: ${data.wallet}
+Chain: ${data.chain.toUpperCase()}
+Transactions: ${data.total_transactions}
+
+🤖 Bot Detection: ${data.reaction_speed.bot_confidence.toFixed(0)}% confidence
+⚡ Avg Reaction: ${data.reaction_speed.avg_reaction_time.toFixed(1)}s
+🕒 Sleep Window: ${String(data.sleep_window.start_hour).padStart(2, '0')}:00 - ${String(data.sleep_window.end_hour).padStart(2, '0')}:00 UTC
+🌍 Primary Region: ${getPrimaryRegion(data.geographic_origin)}
+
+💡 Top Insights:
+${data.key_insights.slice(0, 3).map((insight, i) => `${i + 1}. ${insight}`).join('\n')}
+
+Generated by GATOR - Blockchain Intelligence Platform`;
+
+            navigator.clipboard.writeText(summary).then(() => {
+                showExportSuccess('Summary copied to clipboard');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+
+        function getPrimaryRegion(geoData) {
+            const max = Math.max(geoData.asia_pacific, geoData.europe, geoData.americas);
+            if (max === geoData.asia_pacific) return 'Asia/Pacific';
+            if (max === geoData.europe) return 'Europe';
+            if (max === geoData.americas) return 'Americas';
+            return 'Unknown';
+        }
+
+        function showExportSuccess(message) {
+            // Find any export button and briefly show success state
+            const buttons = document.querySelectorAll('.export-btn');
+            buttons.forEach(btn => {
+                btn.classList.add('success');
+            });
+            
+            // Show success message
+            const originalText = buttons[0].textContent;
+            
+            setTimeout(() => {
+                buttons.forEach(btn => {
+                    btn.classList.remove('success');
+                });
+            }, 2000);
+            
+            console.log(`✓ ${message}`);
+        }
+
         function displayResults(data) {
+            // Store full address and data for copying/exporting
+            currentWalletAddress = data.wallet;
+            currentAnalysisData = data;
+            
             // Update wallet info
             document.getElementById('wallet-display').textContent = 
                 data.wallet.substring(0, 8) + '...' + data.wallet.substring(data.wallet.length - 4);
@@ -1586,15 +2150,43 @@
             Object.values(charts).forEach(chart => chart.destroy());
             charts = {};
 
-            // Activity Pattern Chart
+            // Activity Pattern Chart with color coding
+            const hourlyData = data.activity_pattern.hourly;
+            const sleepStart = data.sleep_window.start_hour;
+            const sleepEnd = data.sleep_window.end_hour;
+            
+            // Find peak hour (hour with maximum activity)
+            const peakHour = hourlyData.indexOf(Math.max(...hourlyData));
+            
+            // Create background colors array: red for sleep window, green for peak, blue for normal
+            const backgroundColors = Array.from({length: 24}, (_, hour) => {
+                // Check if hour is in sleep window (handle wrap-around)
+                let inSleepWindow = false;
+                if (sleepStart <= sleepEnd) {
+                    // Normal case: sleep window doesn't wrap (e.g., 2:00 to 6:00)
+                    inSleepWindow = hour >= sleepStart && hour < sleepEnd;
+                } else {
+                    // Wrapping case: sleep window wraps around midnight (e.g., 23:00 to 5:00)
+                    inSleepWindow = hour >= sleepStart || hour < sleepEnd;
+                }
+                
+                if (hour === peakHour) {
+                    return '#22c55e'; // Green for peak hour
+                } else if (inSleepWindow) {
+                    return '#ef4444'; // Red for sleep window
+                } else {
+                    return '#3b82f6'; // Blue for normal activity
+                }
+            });
+            
             charts.activity = new Chart(document.getElementById('activity-chart'), {
                 type: 'bar',
                 data: {
                     labels: Array.from({length: 24}, (_, i) => i),
                     datasets: [{
                         label: 'Active',
-                        data: data.activity_pattern.hourly,
-                        backgroundColor: '#3b82f6',
+                        data: hourlyData,
+                        backgroundColor: backgroundColors,
                         borderRadius: 4
                     }]
                 },
@@ -1602,14 +2194,40 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const hour = parseInt(context.label);
+                                    let label = `Hour ${hour}: ${context.parsed.y} transactions`;
+                                    if (hour === peakHour) {
+                                        label += ' (Peak Hour)';
+                                    } else if (backgroundColors[hour] === '#ef4444') {
+                                        label += ' (Sleep Window)';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
                     },
                     scales: {
                         x: { 
+                            title: {
+                                display: true,
+                                text: 'Hour of Day (UTC)',
+                                color: '#9ca3af',
+                                font: { size: 12, weight: '500' }
+                            },
                             grid: { color: 'rgba(255,255,255,0.05)' },
                             ticks: { color: '#9ca3af' }
                         },
                         y: { 
+                            title: {
+                                display: true,
+                                text: 'Number of Transactions',
+                                color: '#9ca3af',
+                                font: { size: 12, weight: '500' }
+                            },
                             grid: { color: 'rgba(255,255,255,0.05)' },
                             ticks: { color: '#9ca3af' }
                         }
@@ -1662,10 +2280,22 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { 
+                            title: {
+                                display: true,
+                                text: 'Day of Week',
+                                color: '#9ca3af',
+                                font: { size: 12, weight: '500' }
+                            },
                             grid: { color: 'rgba(255,255,255,0.05)' },
                             ticks: { color: '#9ca3af' }
                         },
                         y: { 
+                            title: {
+                                display: true,
+                                text: 'Number of Transactions',
+                                color: '#9ca3af',
+                                font: { size: 12, weight: '500' }
+                            },
                             grid: { color: 'rgba(255,255,255,0.05)' },
                             ticks: { color: '#9ca3af' }
                         }
