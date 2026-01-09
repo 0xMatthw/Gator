@@ -1,3 +1,5 @@
+⭐ Support us by starring the repo — it helps others discover it!
+
 # 🐊 Gator - Blockchain Intelligence Platform
 
 **Behavioral profiling for blockchain wallets.** Analyze who's behind a wallet using time patterns, gas behavior, reaction speeds, and transaction complexity.
