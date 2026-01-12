@@ -2,6 +2,8 @@
 
 # 🐊 Gator - Blockchain Intelligence Platform
 
+🌐 **Live Demo**: [gator-analysis.vercel.app/](https://gator-analysis.vercel.app/)
+
 **Behavioral profiling for blockchain wallets.** Analyze wallet activity using time patterns, gas behavior, reaction speeds, and transaction complexity to gain insights into wallet ownership and behavior.
 
 ---
