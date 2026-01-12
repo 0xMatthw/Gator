@@ -78,10 +78,10 @@ Generate a comprehensive behavioral profile for any wallet:
 
 ```bash
 # Solana
-python gator_solana.py profile 5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1 --limit 200
+python services/gator_solana.py profile 5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1 --limit 200
 
 # Ethereum
-python gator_evm.py profile 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --chain ethereum
+python services/gator_evm.py profile 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --chain ethereum
 ```
 
 ### Find Connections Between Wallets
@@ -89,7 +89,7 @@ python gator_evm.py profile 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 --chain e
 Analyze relationships and connections between multiple wallets:
 
 ```bash
-python gator_solana.py connect WalletA WalletB WalletC
+python services/gator_solana.py connect WalletA WalletB WalletC
 ```
 
 ### Network Scan (Solana Only)
@@ -98,10 +98,10 @@ Map the target's network connections to N degrees of separation:
 
 ```bash
 # Scan 2 degrees deep to find "friends of friends"
-python gator_solana.py scan 5Q544fKrFoe... --depth 2
+python services/gator_solana.py scan 5Q544fKrFoe... --depth 2
 
 # Deep scan (3 degrees) - Warning: exponentially slower
-python gator_solana.py scan 5Q544fKrFoe... --depth 3 --limit 50
+python services/gator_solana.py scan 5Q544fKrFoe... --depth 3 --limit 50
 ```
 
 ### Real-Time Monitoring
@@ -109,7 +109,7 @@ python gator_solana.py scan 5Q544fKrFoe... --depth 3 --limit 50
 Monitor wallet activity in real-time via WebSocket:
 
 ```bash
-python stalker_service.py 5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1
+python services/stalker_service.py 5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1
 ```
 
 ---

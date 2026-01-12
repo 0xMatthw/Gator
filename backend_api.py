@@ -18,7 +18,7 @@ import json
 from datetime import datetime
 
 # Import Gator functions
-from gator_solana import (
+from services.gator_solana import (
     analyze_wallet_execution_profiles,
     analyze_execution_profile,
     fetch_transaction,
@@ -31,7 +31,7 @@ from gator_solana import (
 
 # Import EVM functions
 try:
-    from gator_evm import (
+    from services.gator_evm import (
         analyze_wallet as analyze_wallet_evm,
         detect_sleep_window as detect_sleep_window_evm,
         calculate_probabilities as calculate_probabilities_evm,
@@ -44,7 +44,7 @@ except ImportError:
 
 # Import Stalker Service for live monitoring
 try:
-    from stalker_service import get_stalker, cleanup_stalkers, WalletStalker
+    from services.stalker_service import get_stalker, cleanup_stalkers, WalletStalker
     STALKER_SUPPORTED = True
 except ImportError:
     STALKER_SUPPORTED = False
